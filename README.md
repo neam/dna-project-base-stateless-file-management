@@ -10,9 +10,9 @@ Instead of storing paths or uris to paths in the items of the data model, items 
 - Abstracts away stateless file management in a PHP application
 - Stores metadata about files available remotely, so that queries of files can be done without physical access to the files
 - Uses the local filesystem only as a brief, single-transaction cache, for instance downloading a large file, operating on it, and storing the results of the operation in the database / uploading a modified version of the file.
-- Uses Filestack.com as a secure remote file storage for files
-- Enables the use of Filestack.com's widgets and JS SDK for browser-based file uploads
-- Enables the use of Filestack.com's file conversion API
+- Uses [Filestack.com](https://www.filestack.com/) as a secure remote file storage for files
+- Enables the use of [Filestack.com](https://www.filestack.com/)'s widgets and JS SDK for browser-based file uploads
+- Enables the use of [Filestack.com](https://www.filestack.com/)'s file conversion API
 - Ability to push public files to S3 buckets so that they can be made available to others 
 
 ## Background and motive
@@ -72,13 +72,14 @@ Note: DNA Project Base uses [PHP App Config](https://github.com/neam/php-app-con
 
 ## Usage
 
-Example of using a file locally:
+Example of using a remotely stored file locally:
 
     $exampleItemType = \propel\models\ExampleItemTypeQuery::create()->findPk(1);
-    $inputFile = $exampleItemType->getFile();
+    $fooFile = $exampleItemType->getFileRelatedByFooFileId();
 
-    $inputFileName = $inputFile->getFilename();
-    $mimeType = $inputFile->getMimetype();
+    $fooFileName = $fooFile->getFilename();
+    $mimeType = $fooFile->getMimetype();
+    
     switch ($mimeType) {
         case 'text/plain':
         case 'text/csv':
@@ -86,10 +87,10 @@ Example of using a file locally:
         case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
 
             // Actually downloads the file
-            $inputFilePath = $inputFile->getAbsoluteLocalPath();
+            $fooFilePath = $fooFile->getAbsoluteLocalPath();
 
             // Example of using the file contents in a PHP library that expects an absolute path to a local file
-            $cellData = SpreadsheetDataFileHelper::getSpreadsheetCellData($inputFilePath);
+            $cellData = SpreadsheetDataFileHelper::getSpreadsheetCellData($fooFilePath);
 
             // ... 
             
@@ -102,5 +103,5 @@ Example of using a file locally:
 Example of creating a file locally and making sure it is stored remotely:
 
     $exampleItemType = \propel\models\ExampleItemTypeQuery::create()->findPk(1);
-
+    
 TODO

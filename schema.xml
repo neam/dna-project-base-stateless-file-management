@@ -83,13 +83,20 @@
     <column name="id" phpName="Id" type="BIGINT" primaryKey="true" autoIncrement="true" required="true"/>
     <column name="label" phpName="Mimetype" type="VARCHAR" size="255"/>
     <column name="foo_file_id" phpName="FooFileId" type="INTEGER"/>
+    <column name="bar_file_id" phpName="BarFileId" type="INTEGER"/>
     <column name="created" phpName="Created" type="TIMESTAMP"/>
     <column name="modified" phpName="Modified" type="TIMESTAMP"/>
     <foreign-key foreignTable="file" name="fk_example_item_type_file1">
       <reference local="foo_file_id" foreign="id"/>
     </foreign-key>
+    <foreign-key foreignTable="file" name="fk_example_item_type_file2">
+      <reference local="bar_file_id" foreign="id"/>
+    </foreign-key>
     <index name="fk_example_item_type_file1_idx">
       <index-column name="foo_file_id"/>
+    </index>
+    <index name="fk_example_item_type_file1_idx">
+      <index-column name="bar_file_id"/>
     </index>
     <vendor type="mysql">
       <parameter name="Engine" value="InnoDB"/>
