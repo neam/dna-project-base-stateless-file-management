@@ -100,8 +100,21 @@ Example of using a remotely stored file locally:
             break;
     }
 
-Example of creating a file locally and making sure it is stored remotely:
+Example of creating a file locally and making sure it is stored remotely as a public file:
 
     $exampleItemType = \propel\models\ExampleItemTypeQuery::create()->findPk(1);
-    
-TODO
+
+    // Create new File record with sample file contents as a local file instance
+    $fooFile = new File();
+    $fooFile->setFilename('foo.txt');
+    $fooFile->putContents("text file contents\ntext file contents");
+
+    // Sync to public files
+    $fooFile->ensureRemotePublicFileInstance();
+
+    // Save in the parent item only after we have stored a remote copy of the file contents
+    $exampleItemType->setFileRelatedByFooFileId($fooFile);
+    $exampleItemType->save();
+
+    // Access public url
+    $publicUrl = $fooFile->fileInstanceAbsoluteUrl($fooFile->getFileInstanceRelatedByPublicFilesS3FileInstanceId());

@@ -66,7 +66,7 @@ trait FileTrait
      * @return string
      * @throws Exception
      */
-    protected function getCorrectPath()
+    public function getCorrectPath()
     {
         /** @var \propel\models\File $this */
         $id = $this->getId();
@@ -75,6 +75,17 @@ trait FileTrait
         }
         $filename = \neam\Sanitize::filename($this->getFilename());
         return $this->getId() . DIRECTORY_SEPARATOR . $filename;
+    }
+
+    public function ensureCorrectPath()
+    {
+        if (empty($this->getId())) {
+            $this->save();
+        }
+        if ($this->getPath() !== $this->getCorrectPath()) {
+            $this->setPath($this->getCorrectPath());
+        }
+        return $this->getPath();
     }
 
     /**
@@ -126,22 +137,23 @@ trait FileTrait
      * @throws Exception
      * @throws \Propel\Runtime\Exception\PropelException
      */
-    public function ensureFileMetadata()
+    public function determineFileMetadata($localPath = null)
     {
-        Suggestions::status(__METHOD__);
         /** @var \propel\models\File $this */
 
-        $localFileInstance = $this->getEnsuredLocalFileInstance();
-        $localPath = $localFileInstance->getUri();
-        $absoluteLocalPath = $this->getLocalBasePath() . $localPath;
+        if ($localPath === null) {
+            $localFileInstance = $this->getEnsuredLocalFileInstance();
+            $localPath = $localFileInstance->getUri();
+        }
 
         if (empty($this->getMimetype())) {
             $this->setMimetype($this->getLocalFilesystem()->getMimetype($localPath));
         }
         if ($this->getSize() === null) {
-            $this->setMimetype($this->getLocalFilesystem()->getSize($localPath));
+            $this->setSize($this->getLocalFilesystem()->getSize($localPath));
         }
         if (empty($this->getFilename())) {
+            $absoluteLocalPath = $this->getLocalBasePath() . $localPath;
             $filename = pathinfo($absoluteLocalPath, PATHINFO_FILENAME);
             $this->setFilename($filename);
         }
@@ -149,8 +161,6 @@ trait FileTrait
         // $md5 = md5_file($absoluteLocalPath);
         // Possible TODO: image width/height if image
         // getimagesize($absoluteLocalPath)
-
-        $this->save();
 
     }
 

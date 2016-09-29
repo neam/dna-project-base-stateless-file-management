@@ -64,10 +64,22 @@ trait LocalFileTrait
         return $this->getLocalBasePath() . $this->getPathForManipulation($ensure);
     }
 
-    public function getAssumedAbsolutePath()
+    public function getExpectedAbsoluteLocalPath()
     {
         /** @var \propel\models\File $this */
         return $this->getLocalBasePath() . $this->getPathForManipulation($ensure = false);
+    }
+
+    public function putContents($fileContents)
+    {
+        /** @var \propel\models\File $this */
+        $path = $this->ensureCorrectPath();
+        if ($this->getLocalFilesystem()->has($path)) {
+            $this->getLocalFilesystem()->delete($path);
+        }
+        $this->getLocalFilesystem()->write($path, $fileContents);
+        $this->determineFileMetadata($path);
+        $localFileInstance = $this->getEnsuredLocalFileInstance();
     }
 
     /**
@@ -115,15 +127,8 @@ trait LocalFileTrait
 
     }
 
-    /**
-     * @propel
-     * @return mixed|null|\propel\models\FileInstance
-     * @throws Exception
-     * @throws \Propel\Runtime\Exception\PropelException
-     */
-    protected function getEnsuredLocalFileInstance()
+    protected function createLocalFileInstanceIfNecessary()
     {
-        \Suggestions::status(__METHOD__);
 
         /** @var \propel\models\File $this */
         $localFileInstance = $this->localFileInstance();
@@ -135,6 +140,23 @@ trait LocalFileTrait
             $localFileInstance->setStorageComponentRef('local');
             $this->setFileInstanceRelatedByLocalFileInstanceId($localFileInstance);
         }
+
+        return $localFileInstance;
+
+    }
+
+    /**
+     * @propel
+     * @return mixed|null|\propel\models\FileInstance
+     * @throws Exception
+     * @throws \Propel\Runtime\Exception\PropelException
+     */
+    protected function getEnsuredLocalFileInstance()
+    {
+        \Suggestions::status(__METHOD__);
+
+        /** @var \propel\models\File $this */
+        $localFileInstance = $this->createLocalFileInstanceIfNecessary();
 
         // Download the file to where it is expected to be found
         $path = $localFileInstance->getUri();
