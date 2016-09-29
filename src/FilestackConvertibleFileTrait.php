@@ -1,6 +1,6 @@
 <?php
 
-namespace neam\file_registry;
+namespace neam\stateless_file_management;
 
 use GuzzleHttp;
 use propel\models\File;
@@ -11,17 +11,12 @@ use propel\models\FileInstance;
  * Holds methods relevant for converting files using the filestack api
  *
  * Class FilestackConvertibleFileTrait
- * @package neam\file_registry
+ * @package neam\stateless_file_management
  */
 trait FilestackConvertibleFileTrait
 {
 
     /**
-     * Return the n
-     */
-
-    /**
-     *
      * @return string
      */
     static public function convertDynamicallyCroppedImageToOrdinaryImage()

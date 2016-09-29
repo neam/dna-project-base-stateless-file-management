@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<database name="default" defaultIdMethod="native" defaultPhpNamingMethod="underscore" identifierQuoting="true">
+  <table name="file" idMethod="native" phpName="File" namespace="propel\models">
+    <column name="id" phpName="Id" type="INTEGER" primaryKey="true" autoIncrement="true" required="true"/>
+    <column name="path" phpName="Path" type="LONGVARCHAR"/>
+    <column name="size" phpName="Size" type="INTEGER"/>
+    <column name="mimetype" phpName="Mimetype" type="VARCHAR" size="255"/>
+    <column name="filename" phpName="Filename" type="VARCHAR" size="255"/>
+    <column name="original_filename" phpName="OriginalFilename" type="VARCHAR" size="255"/>
+    <column name="public" phpName="Public" type="BOOLEAN" size="1"/>
+    <column name="local_file_instance_id" phpName="LocalFileInstanceId" type="BIGINT"/>
+    <column name="public_files_s3_file_instance_id" phpName="PublicFilesS3FileInstanceId" type="BIGINT"/>
+    <column name="filestack_file_instance_id" phpName="FilestackFileInstanceId" type="BIGINT"/>
+    <column name="filestack_pending_file_instance_id" phpName="FilestackPendingFileInstanceId" type="BIGINT"/>
+    <column name="parent_file_id" phpName="ParentFileId" type="INTEGER"/>
+    <column name="created" phpName="Created" type="TIMESTAMP"/>
+    <column name="modified" phpName="Modified" type="TIMESTAMP"/>
+    <foreign-key foreignTable="file" name="fk_file_file1">
+      <reference local="parent_file_id" foreign="id"/>
+    </foreign-key>
+    <foreign-key foreignTable="file_instance" name="fk_file_file_instance1">
+      <reference local="local_file_instance_id" foreign="id"/>
+    </foreign-key>
+    <foreign-key foreignTable="file_instance" name="fk_file_file_instance2">
+      <reference local="public_files_s3_file_instance_id" foreign="id"/>
+    </foreign-key>
+    <foreign-key foreignTable="file_instance" name="fk_file_file_instance3">
+      <reference local="filestack_file_instance_id" foreign="id"/>
+    </foreign-key>
+    <foreign-key foreignTable="file_instance" name="fk_file_file_instance4">
+      <reference local="filestack_pending_file_instance_id" foreign="id"/>
+    </foreign-key>
+    <index name="fk_file_file_instance1_idx">
+      <index-column name="local_file_instance_id"/>
+    </index>
+    <index name="fk_file_file_instance2_idx">
+      <index-column name="public_files_s3_file_instance_id"/>
+    </index>
+    <index name="fk_file_file_instance3_idx">
+      <index-column name="filestack_file_instance_id"/>
+    </index>
+    <index name="fk_file_file_instance4_idx">
+      <index-column name="filestack_pending_file_instance_id"/>
+    </index>
+    <index name="fk_file_file1_idx">
+      <index-column name="parent_file_id"/>
+    </index>
+    <vendor type="mysql">
+      <parameter name="Engine" value="InnoDB"/>
+    </vendor>
+    <behavior name="timestampable">
+      <parameter name="create_column" value="created"/>
+      <parameter name="update_column" value="modified"/>
+      <parameter name="disable_created_at" value="false"/>
+      <parameter name="disable_updated_at" value="false"/>
+    </behavior>
+  </table>
+  <table name="file_instance" idMethod="native" phpName="FileInstance" namespace="propel\models">
+    <column name="id" phpName="Id" type="BIGINT" primaryKey="true" autoIncrement="true" required="true"/>
+    <column name="file_id" phpName="FileId" type="INTEGER"/>
+    <column name="storage_component_ref" phpName="StorageComponentRef" type="VARCHAR" size="255"/>
+    <column name="uri" phpName="Uri" type="VARCHAR" size="255"/>
+    <column name="data_json" phpName="DataJson" type="LONGVARCHAR"/>
+    <column name="created" phpName="Created" type="TIMESTAMP"/>
+    <column name="modified" phpName="Modified" type="TIMESTAMP"/>
+    <foreign-key foreignTable="file" name="fk_file_instance_file1">
+      <reference local="file_id" foreign="id"/>
+    </foreign-key>
+    <index name="fk_file_file_registry_entry1_idx">
+      <index-column name="file_id"/>
+    </index>
+    <vendor type="mysql">
+      <parameter name="Engine" value="InnoDB"/>
+    </vendor>
+    <behavior name="timestampable">
+      <parameter name="create_column" value="created"/>
+      <parameter name="update_column" value="modified"/>
+      <parameter name="disable_created_at" value="false"/>
+      <parameter name="disable_updated_at" value="false"/>
+    </behavior>
+  </table>
+  <table name="example_item_type" idMethod="native" phpName="ExampleItemType" namespace="propel\models">
+    <column name="id" phpName="Id" type="BIGINT" primaryKey="true" autoIncrement="true" required="true"/>
+    <column name="label" phpName="Mimetype" type="VARCHAR" size="255"/>
+    <column name="foo_file_id" phpName="FooFileId" type="INTEGER"/>
+    <column name="created" phpName="Created" type="TIMESTAMP"/>
+    <column name="modified" phpName="Modified" type="TIMESTAMP"/>
+    <foreign-key foreignTable="file" name="fk_example_item_type_file1">
+      <reference local="foo_file_id" foreign="id"/>
+    </foreign-key>
+    <index name="fk_example_item_type_file1_idx">
+      <index-column name="foo_file_id"/>
+    </index>
+    <vendor type="mysql">
+      <parameter name="Engine" value="InnoDB"/>
+    </vendor>
+    <behavior name="timestampable">
+      <parameter name="create_column" value="created"/>
+      <parameter name="update_column" value="modified"/>
+      <parameter name="disable_created_at" value="false"/>
+      <parameter name="disable_updated_at" value="false"/>
+    </behavior>
+  </table>
+</database>

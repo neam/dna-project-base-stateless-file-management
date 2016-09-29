@@ -1,6 +1,6 @@
 <?php
 
-namespace neam\file_registry;
+namespace neam\stateless_file_management;
 
 use League\Flysystem\FileNotFoundException;
 use League\Flysystem\Filesystem;
@@ -58,7 +58,7 @@ trait LocalFileTrait
      * @return string
      * @throws Exception
      */
-    public function getAbsolutePathForManipulation($ensure = true)
+    public function getAbsoluteLocalPath($ensure = true)
     {
         /** @var \propel\models\File $this */
         return $this->getLocalBasePath() . $this->getPathForManipulation($ensure);

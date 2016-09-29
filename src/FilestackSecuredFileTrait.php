@@ -1,6 +1,6 @@
 <?php
 
-namespace neam\file_registry;
+namespace neam\stateless_file_management;
 
 trait FilestackSecuredFileTrait
 {

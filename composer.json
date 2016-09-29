@@ -1,0 +1,32 @@
+{
+  "name": "neam/dna-project-base-stateless-file-management",
+  "description": "",
+  "keywords": [
+    "php",
+    "sie"
+  ],
+  "homepage": "https://github.com/neam/dna-project-base-stateless-file-management",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Fredrik Wollsén",
+      "email": "fredrik@neam.se"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "neam\\stateless_file_management\\": "src/"
+    }
+  },
+  "require": {
+    "php": ">=5.6.5",
+    "ext-iconv": "*",
+    "propel/propel": "*@dev",
+    "league/flysystem": "~1.0.24",
+    "league/flysystem-aws-s3-v3": "~1.0.13"
+  },
+  "require-dev": {
+    "codeception/codeception": "~2.2.4"
+  }
+}
