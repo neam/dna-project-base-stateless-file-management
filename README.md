@@ -26,11 +26,12 @@ The following quote from [https://12factor.net/processes](https://12factor.net/p
 ## Design principles
 
 Some principles upon which these helpers are built:
- §1 Local file manipulation should be available simply by reading LOCAL_TMP_FILES_PATH . DIRECTORY_SEPARATOR . $file->getPath() as defined in getLocalAbsolutePath()
- §2 The path to the file is relative to the storage component's file system and should follow the format $file->getId() . DIRECTORY_SEPARATOR . $file->getFilename() - this is the file's "correct path" and ensures that multiple files with the same filename can be written to all file systems
- §3 Running $file->ensureCorrectLocalFile() ensures §1 and §2 (designed to run before local file manipulation, post file creation/modification time and/or as a scheduled process)
- §4 File instance records tell us where binary copies of the file are stored
- §5 File instances should (if possible) store it's binary copy using the relative path provided by $file->getPath(), so that retrieval of the file's binary contents is straightforward and eventual public url's follow the official path/name supplied by $file->getPath()
+ 
+1. Local file manipulation should be available simply by reading LOCAL_TMP_FILES_PATH . DIRECTORY_SEPARATOR . $file->getPath() as defined in getLocalAbsolutePath()
+2. The path to the file is relative to the storage component's file system and should follow the format $file->getId() . DIRECTORY_SEPARATOR . $file->getFilename() - this is the file's "correct path" and ensures that multiple files with the same filename can be written to all file systems
+3. Running $file->ensureCorrectLocalFile() ensures §1 and §2 (designed to run before local file manipulation, post file creation/modification time and/or as a scheduled process)
+4. File instance records tell us where binary copies of the file are stored
+5. File instances should (if possible) store it's binary copy using the relative path provided by $file->getPath(), so that retrieval of the file's binary contents is straightforward and eventual public url's follow the official path/name supplied by $file->getPath()
 
 Current storage components handled by this trait:
  - local (implies that the binary is stored locally)
@@ -49,19 +50,25 @@ Current storage components handled by this trait:
         use \neam\stateless_file_management\FileTrait;
     }
 
-3. Set the following constants in your app
+3. Wherever your data model requires files, add foreign key relationships to the file table, see example_item_type in schema.xml for an example.
+
+4. Set the following constants in your app
 
 `LOCAL_TMP_FILES_PATH` - to a path where local temporary files can be written and read by the php process
+
 `PUBLIC_FILES_S3_BUCKET` - Amazon S3 bucket where publicly shared files are to be stored
+
 `PUBLIC_FILES_S3_REGION` - The region of the S3 bucket
+
 `PUBLIC_FILE_UPLOADERS_ACCESS_KEY` - Amazon S3 access key for access to the above bucket
+
 `PUBLIC_FILE_UPLOADERS_SECRET` - Amazon S3 access secret for access to the above bucket
+
 `FILESTACK_API_KEY` - [Filestack.com](https://www.filestack.com/) API key
+
 `FILESTACK_API_SECRET` - Used to sign URLs for temporary access to secured Filestack resources
 
 Note: DNA Project Base uses [PHP App Config](https://github.com/neam/php-app-config) to set constants based on expected config environment variables. 
-
-4. Wherever your data model requires files, add foreign key relationships to the file table, see example_item_type in schema.xml for an example.
 
 ## Usage
 
