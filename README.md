@@ -1,7 +1,7 @@
 DNA Project Base Stateless File Management
 ==========================================
 
-Schema addition and helper traits that encapsulates [DNA Project Base](http://neamlabs.com/dna-project-base/) file-handling logic.
+Schema addition and helper traits that encapsulates [DNA Project Base](http://neamlabs.com/dna-project-base/) stateless file-handling logic.
 
 Instead of storing paths or uris to paths in the items of the data model, items that need to keep track of files will use a relation to a File item type, which in turn has relations to FileInstance items that specify where binary copies of the file are stored.
 

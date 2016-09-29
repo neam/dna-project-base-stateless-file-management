@@ -1,6 +1,6 @@
 {
   "name": "neam/dna-project-base-stateless-file-management",
-  "description": "",
+  "description": "Schema addition and helper traits that encapsulates [DNA Project Base](http://neamlabs.com/dna-project-base/) stateless file-handling logic",
   "keywords": [
     "php",
     "sie"
