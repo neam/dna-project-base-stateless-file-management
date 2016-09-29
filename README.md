@@ -54,7 +54,7 @@ Current storage components handled by this trait:
 
 4. Set the following constants in your app
 
-`LOCAL_TMP_FILES_PATH` - to a path where local temporary files can be written and read by the php process
+`LOCAL_TMP_FILES_PATH` - to a path where the tenant's local temporary files can be written and read by the php process 
 
 `PUBLIC_FILES_S3_BUCKET` - Amazon S3 bucket where publicly shared files are to be stored
 
@@ -67,6 +67,8 @@ Current storage components handled by this trait:
 `FILESTACK_API_KEY` - [Filestack.com](https://www.filestack.com/) API key
 
 `FILESTACK_API_SECRET` - Used to sign URLs for temporary access to secured Filestack resources
+
+`DATA` - Dataset id which corresponds to the database being used in the current request. Enables sharing of the same backing file services for multiple tenants
 
 Note: DNA Project Base uses [PHP App Config](https://github.com/neam/php-app-config) to set constants based on expected config environment variables. 
 
