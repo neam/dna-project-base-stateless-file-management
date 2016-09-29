@@ -43,7 +43,6 @@ trait FilestackConvertibleFileTrait
         /** @var \propel\models\File $this */
         if (!($fileInstance = $this->getFileInstanceRelatedByFilestackPendingFileInstanceId())) {
             $fileInstance = new FileInstance();
-            $fileInstance->setFileRelatedByFileId($this); // <-- TODO: Remove this column
             $fileInstance->setStorageComponentRef('filestack-pending');
             $this->setFileInstanceRelatedByFilestackPendingFileInstanceId($fileInstance);
         }

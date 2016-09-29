@@ -57,18 +57,11 @@
   </table>
   <table name="file_instance" idMethod="native" phpName="FileInstance" namespace="propel\models">
     <column name="id" phpName="Id" type="BIGINT" primaryKey="true" autoIncrement="true" required="true"/>
-    <column name="file_id" phpName="FileId" type="INTEGER"/>
     <column name="storage_component_ref" phpName="StorageComponentRef" type="VARCHAR" size="255"/>
     <column name="uri" phpName="Uri" type="VARCHAR" size="255"/>
     <column name="data_json" phpName="DataJson" type="LONGVARCHAR"/>
     <column name="created" phpName="Created" type="TIMESTAMP"/>
     <column name="modified" phpName="Modified" type="TIMESTAMP"/>
-    <foreign-key foreignTable="file" name="fk_file_instance_file1">
-      <reference local="file_id" foreign="id"/>
-    </foreign-key>
-    <index name="fk_file_file_registry_entry1_idx">
-      <index-column name="file_id"/>
-    </index>
     <vendor type="mysql">
       <parameter name="Engine" value="InnoDB"/>
     </vendor>

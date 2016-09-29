@@ -133,7 +133,6 @@ trait LocalFileTrait
             $correctPath = $this->getCorrectPath();
             $localFileInstance = new \propel\models\FileInstance();
             $localFileInstance->setStorageComponentRef('local');
-            $localFileInstance->setFileRelatedByFileId($this); // <-- TODO: Remove this column
             $this->setFileInstanceRelatedByLocalFileInstanceId($localFileInstance);
         }
 

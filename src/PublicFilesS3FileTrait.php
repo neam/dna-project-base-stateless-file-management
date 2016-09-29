@@ -135,7 +135,6 @@ trait PublicFilesS3FileTrait
         if (empty($remotePublicFileInstance)) {
             $remotePublicFileInstance = new \propel\models\FileInstance();
             $remotePublicFileInstance->setStorageComponentRef('public-files-s3');
-            $remotePublicFileInstance->setFileRelatedByFileId($this); // <-- TODO: Remove this column
             $this->setFileInstanceRelatedByPublicFilesS3FileInstanceId($remotePublicFileInstance);
         }
 

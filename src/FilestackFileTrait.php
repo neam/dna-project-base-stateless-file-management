@@ -79,7 +79,6 @@ trait FilestackFileTrait
         $file = new File();
         static::setFileMetadataFromFilestackFileInstanceMetadata($file, $fileInstance);
         $file->setFileInstanceRelatedByFilestackFileInstanceId($fileInstance);
-        $fileInstance->setFileRelatedByFileId($file); // <-- TODO: Remove this column
 
         return $file;
 
