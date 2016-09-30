@@ -78,8 +78,16 @@ trait LocalFileTrait
             $this->getLocalFilesystem()->delete($path);
         }
         $this->getLocalFilesystem()->write($path, $fileContents);
+        $this->setMimetype(null);
+        $this->setSize(null);
         $this->determineFileMetadata($path);
-        $localFileInstance = $this->getEnsuredLocalFileInstance();
+        if (!$this->checkIfCorrectLocalFileIsInPath($path)) {
+            throw new Exception("Put file contents failed");
+        }
+        // Store local file instance
+        $localFileInstance = $this->createLocalFileInstanceIfNecessary();
+        $localFileInstance->setUri($path);
+        $localFileInstance->save();
     }
 
     /**
