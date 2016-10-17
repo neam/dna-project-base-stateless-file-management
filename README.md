@@ -56,7 +56,11 @@ Current storage components handled by this trait:
 
 `LOCAL_TMP_FILES_PATH` - to a path where the tenant's local temporary files can be written and read by the php process 
 
-`PUBLIC_FILES_S3_BUCKET` - Amazon S3 bucket where publicly shared files are to be stored
+`DATA` - Dataset id which corresponds to the database being used in the current request. Enables sharing of the same backing file services for multiple tenants
+
+Optionally also set the following:
+
+`PUBLIC_FILES_S3_BUCKET` - Amazon S3 bucket where publicly shared files are to be stored, prefixed with 's3://'
 
 `PUBLIC_FILES_S3_REGION` - The region of the S3 bucket
 
@@ -68,7 +72,9 @@ Current storage components handled by this trait:
 
 `FILESTACK_API_SECRET` - Used to sign URLs for temporary access to secured Filestack resources
 
-`DATA` - Dataset id which corresponds to the database being used in the current request. Enables sharing of the same backing file services for multiple tenants
+`CONTEXT_IO_API_SECRET` - Used to sign URLs for temporary access to secured Context.IO resources
+
+`APPVHOST` - The host name that the current deployment uses (to be able to reference to REST api endpoints)
 
 Note: DNA Project Base uses [PHP App Config](https://github.com/neam/php-app-config) to set constants based on expected config environment variables. 
 

@@ -32,6 +32,7 @@ trait FileTrait
     use FilestackSecuredFileTrait;
     use FilestackConvertibleFileTrait;
     use PublicFilesS3FileTrait;
+    use ContextIoFileTrait;
 
     /**
      * @propel
@@ -196,6 +197,9 @@ trait FileTrait
             // Local files are assumed published to a CDN
             return CDN_PATH . 'media/' . $file->path;
         }
+        if (($fileInstance = $file->contextIoFileInstance) && !empty($fileInstance->uri)) {
+            throw new Exception("Absolute url for Yii apps not supported");
+        }
         return null;
     }
 
@@ -217,6 +221,9 @@ trait FileTrait
             return $file->fileInstanceAbsoluteUrl($fileInstance);
         }
         if (($fileInstance = $file->getFileInstanceRelatedByLocalFileInstanceId()) && !empty($fileInstance->getUri())) {
+            return $file->fileInstanceAbsoluteUrl($fileInstance);
+        }
+        if (($fileInstance = $file->getFileInstanceRelatedByContextIoFileInstanceId()) && !empty($fileInstance->getUri())) {
             return $file->fileInstanceAbsoluteUrl($fileInstance);
         }
         return null;
@@ -254,6 +261,8 @@ trait FileTrait
             case 'filepicker':
             case 'filestack':
                 return static::filestackCdnUrl(static::signFilestackUrl($fileInstance->getUri()));
+            case 'context-io':
+                return static::restApiContextIoPublicUrlForwardingEndpoint($this);
         }
         throw new Exception(
             "fileInstanceAbsoluteUrl() encountered an unsupported storage component ref ('$storageComponentRef')"
