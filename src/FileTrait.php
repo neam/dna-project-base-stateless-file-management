@@ -193,12 +193,12 @@ trait FileTrait
         if (($fileInstance = $file->filestackFileInstance) && !empty($fileInstance->uri)) {
             return static::filestackCdnUrl(static::signFilestackUrl($fileInstance->uri));
         }
+        if (($fileInstance = $file->contextIoFileInstance) && !empty($fileInstance->uri)) {
+            throw new Exception("Absolute url for Yii apps not supported");
+        }
         if (($fileInstance = $file->localFileInstance) && !empty($fileInstance->uri)) {
             // Local files are assumed published to a CDN
             return CDN_PATH . 'media/' . $file->path;
-        }
-        if (($fileInstance = $file->contextIoFileInstance) && !empty($fileInstance->uri)) {
-            throw new Exception("Absolute url for Yii apps not supported");
         }
         return null;
     }
@@ -220,10 +220,10 @@ trait FileTrait
         ) {
             return $file->fileInstanceAbsoluteUrl($fileInstance);
         }
-        if (($fileInstance = $file->getFileInstanceRelatedByLocalFileInstanceId()) && !empty($fileInstance->getUri())) {
+        if (($fileInstance = $file->getFileInstanceRelatedByContextIoFileInstanceId()) && !empty($fileInstance->getUri())) {
             return $file->fileInstanceAbsoluteUrl($fileInstance);
         }
-        if (($fileInstance = $file->getFileInstanceRelatedByContextIoFileInstanceId()) && !empty($fileInstance->getUri())) {
+        if (($fileInstance = $file->getFileInstanceRelatedByLocalFileInstanceId()) && !empty($fileInstance->getUri())) {
             return $file->fileInstanceAbsoluteUrl($fileInstance);
         }
         return null;

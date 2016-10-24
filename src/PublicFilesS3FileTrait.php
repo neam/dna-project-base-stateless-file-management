@@ -34,7 +34,11 @@ trait PublicFilesS3FileTrait
                 ]
             );
 
-            $adapter = new AwsS3Adapter($client, str_replace("s3://", "", PUBLIC_FILES_S3_BUCKET), 'files/' . DATA);
+            $adapter = new AwsS3Adapter(
+                $client,
+                str_replace("s3://", "", trim(PUBLIC_FILES_S3_BUCKET, '/')),
+                trim(PUBLIC_FILES_S3_PATH, '/') . '/' . DATA
+            );
 
             $filesystem = new Filesystem(
                 $adapter, [
@@ -56,7 +60,10 @@ trait PublicFilesS3FileTrait
      */
     public function getPublicFilesS3BaseUrl()
     {
-        return str_replace("s3://", "//", PUBLIC_FILES_S3_BUCKET) . '/files/' . DATA . '/';
+        return str_replace("s3://", "//", trim(PUBLIC_FILES_S3_BUCKET, '/')) . '/' . trim(
+            PUBLIC_FILES_S3_PATH,
+            '/'
+        ) . '/' . DATA . '/';
     }
 
     /**
