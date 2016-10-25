@@ -60,10 +60,10 @@ trait PublicFilesS3FileTrait
      */
     public function getPublicFilesS3BaseUrl()
     {
-        return str_replace("s3://", "//", trim(PUBLIC_FILES_S3_BUCKET, '/')) . '/' . trim(
-            PUBLIC_FILES_S3_PATH,
-            '/'
-        ) . '/' . DATA . '/';
+        $path = trim(PUBLIC_FILES_S3_PATH, '/');
+        return str_replace("s3://", "//", trim(PUBLIC_FILES_S3_BUCKET, '/')) . '/'
+        . ($path ? $path . '/' : '')
+        . DATA . '/';
     }
 
     /**
@@ -75,7 +75,7 @@ trait PublicFilesS3FileTrait
      */
     public function publicFilesS3Url($uri)
     {
-        return $this->getPublicFilesS3BaseUrl() . str_replace('%2F', '/', rawurlencode($uri));
+        return $this->getPublicFilesS3BaseUrl() . trim(str_replace('%2F', '/', rawurlencode($uri)), '/');
     }
 
     /**

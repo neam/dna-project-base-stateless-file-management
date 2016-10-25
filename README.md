@@ -64,7 +64,7 @@ Optionally also set the following:
 
 `PUBLIC_FILES_S3_REGION` - The region of the S3 bucket
 
-`PUBLIC_FILES_S3_PATH` - Directory within amazon S3 bucket where publicly shared files are to be stored (Example: "/files". Use "/" or leave empty if the whole bucket is reserved for storing files)
+`PUBLIC_FILES_S3_PATH` - Directory within amazon S3 bucket where publicly shared files are to be stored. Leave empty if the whole bucket is reserved for storing files. (Example: "/files/", in which case tenant files will be published to "/files/%DATA/" instead of "/%DATA")
 
 `PUBLIC_FILES_S3_HTTP_HOST` - Hostname to where the bucket is available via http and https (Defaults to the bucket name with 's3://' stripped off from the beginning)
 
