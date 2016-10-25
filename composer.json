@@ -1,9 +1,13 @@
 {
   "name": "neam/dna-project-base-stateless-file-management",
-  "description": "Schema addition and helper traits that encapsulates [DNA Project Base](http://neamlabs.com/dna-project-base/) stateless file-handling logic",
+  "description": "Schema addition and helper traits that encapsulates the 12-factor-inspired [DNA Project Base](http://neamlabs.com/dna-project-base/) stateless file-handling logic",
   "keywords": [
     "php",
-    "sie"
+    "file-handling",
+    "12factor",
+    "s3",
+    "paas",
+    "docker"
   ],
   "homepage": "https://github.com/neam/dna-project-base-stateless-file-management",
   "type": "library",
