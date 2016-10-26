@@ -48,6 +48,9 @@ trait FileTrait
         if (empty($url)) {
             throw new Exception("Invalid url argument ('$url') to downloadRemoteFileToStream()");
         }
+        if (substr($url, 0, 2) === "//") {
+            $url = "http:" . $url;
+        }
         $BUFSIZ = 4095;
         $rfile = fopen($url, 'r');
         if (!$rfile) {
@@ -110,6 +113,9 @@ trait FileTrait
     {
         /** @var \propel\models\File $this */
         if ($fileInstance = $this->getFileInstanceRelatedByFilestackFileInstanceId()) {
+            return $fileInstance;
+        }
+        if ($fileInstance = $this->getFileInstanceRelatedByContextIoFileInstanceId()) {
             return $fileInstance;
         }
         if ($fileInstance = $this->getFileInstanceRelatedByPublicFilesS3FileInstanceId()) {
@@ -247,7 +253,7 @@ trait FileTrait
      * @return mixed|string
      * @throws Exception
      */
-    public function fileInstanceAbsoluteUrl(\propel\models\FileInstance $fileInstance)
+    public function fileInstanceAbsoluteUrl(\propel\models\FileInstance $fileInstance, $immediateDownload = false)
     {
 
         $storageComponentRef = $fileInstance->getStorageComponentRef();
@@ -262,6 +268,9 @@ trait FileTrait
             case 'filestack':
                 return static::filestackCdnUrl(static::signFilestackUrl($fileInstance->getUri()));
             case 'context-io':
+                if ($immediateDownload) {
+                    return static::contextIoPublicUrl($fileInstance);
+                }
                 return static::restApiContextIoPublicUrlForwardingEndpoint($this);
         }
         throw new Exception(

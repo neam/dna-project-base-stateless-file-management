@@ -179,7 +179,7 @@ trait LocalFileTrait
             }
 
             // Download to a temporary location
-            $publicUrl = $this->fileInstanceAbsoluteUrl($remoteFileInstance);
+            $publicUrl = $this->fileInstanceAbsoluteUrl($remoteFileInstance, $immediateDownload = true);
             $tmpStream = tmpfile();
             $this->downloadRemoteFileToStream($publicUrl, $tmpStream);
 

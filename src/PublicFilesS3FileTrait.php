@@ -153,6 +153,7 @@ trait PublicFilesS3FileTrait
         }
         if (!$this->checkIfCorrectRemotePublicFileIsInPath($path)) {
 
+            // TODO: Ability to prevent the following method from attempting to download from the public files s3 instance
             $localFileInstance = $this->getEnsuredLocalFileInstance();
             if (empty($localFileInstance)) {
                 throw new Exception("No local file instance available to upload the file from");
