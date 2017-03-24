@@ -13,11 +13,22 @@ trait FilestackFileTrait
     {
 
         // Use Filestack's CDN - Including legacy Filepicker's CDN since it still is in use by Filestack for probably buggy reasons
-        return str_replace(
+        $cdnUrl = str_replace(
             ["www.filestackapi.com", "www.filepicker.io"],
             ["cdn.filestackcontent.com", "cdn.filepicker.io"],
             $filestackUrl
         );
+
+        // Optionally use custom filestack domain (if configured)
+        if (defined('FILESTACK_CUSTOM_DOMAIN') && !empty(FILESTACK_CUSTOM_DOMAIN)) {
+            $cdnUrl = str_replace(
+                ["cdn.filestackcontent.com", "cdn.filepicker.io"],
+                ["cdn." . FILESTACK_CUSTOM_DOMAIN, "cdn." . FILESTACK_CUSTOM_DOMAIN],
+                $cdnUrl
+            );
+        }
+
+        return $cdnUrl;
 
     }
 
