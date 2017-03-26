@@ -47,7 +47,7 @@ trait FilestackSecuredFileTrait
     static public function filestackCreatorJsonPolicy()
     {
 
-        $ten_year_expiry = strval(intval(time() + 60 * 60 * 24 * 365 * 10));
+        $ten_year_expiry = strval(intval(time() + 60 * 60 * 24 * 365 * 10)); // 10 years
         return '{"call":["pick"],"expiry":' . $ten_year_expiry . '}';
 
     }
