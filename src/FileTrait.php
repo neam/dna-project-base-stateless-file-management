@@ -3,7 +3,7 @@
 namespace neam\stateless_file_management;
 
 use Exception;
-use Suggestions;
+use Operations;
 
 /**
  * Helper trait that encapsulates DNA project base file-handling logic
@@ -44,7 +44,7 @@ trait FileTrait
      */
     static public function downloadRemoteFileToStream($url, $targetFileHandle)
     {
-        Suggestions::status(__METHOD__);
+        Operations::status(__METHOD__);
         if (empty($url)) {
             throw new Exception("Invalid url argument ('$url') to downloadRemoteFileToStream()");
         }
@@ -61,7 +61,7 @@ trait FileTrait
             fwrite($lfile, fread($rfile, $BUFSIZ), $BUFSIZ);
         }
         fclose($rfile);
-        Suggestions::status("Downloaded file from $url");
+        Operations::status("Downloaded file from $url");
         return $lfile;
     }
 

@@ -99,7 +99,7 @@ trait LocalFileTrait
      */
     public function ensureCorrectLocalFile()
     {
-        \Suggestions::status(__METHOD__);
+        \Operations::status(__METHOD__);
 
         /** @var \propel\models\File $this */
 
@@ -161,7 +161,7 @@ trait LocalFileTrait
      */
     protected function getEnsuredLocalFileInstance()
     {
-        \Suggestions::status(__METHOD__);
+        \Operations::status(__METHOD__);
 
         /** @var \propel\models\File $this */
         $localFileInstance = $this->createLocalFileInstanceIfNecessary();
@@ -209,7 +209,7 @@ trait LocalFileTrait
         \propel\models\FileInstance $fileInstance,
         $path
     ) {
-        \Suggestions::status(__METHOD__);
+        \Operations::status(__METHOD__);
 
         if (empty($path)) {
             throw new Exception("Supplied path to move file instance with id '{$fileInstance->getId()}' to is empty");
@@ -241,13 +241,13 @@ trait LocalFileTrait
      */
     protected function checkIfCorrectLocalFileIsInPath($path)
     {
-        \Suggestions::status(__METHOD__);
-        \Suggestions::status($path);
+        \Operations::status(__METHOD__);
+        \Operations::status($path);
 
         // Check if file exists
         $exists = $this->getLocalFilesystem()->has($path);
         if (!$exists) {
-            //\Suggestions::status("Does not exist");
+            //\Operations::status("Does not exist");
             return false;
         }
 
@@ -262,14 +262,14 @@ trait LocalFileTrait
         // Check if existing file has the correct size
         $size = $this->getLocalFilesystem()->getSize($path);
         if ($size !== $this->getSize()) {
-            //\Suggestions::status("Wrong size (expected: {$this->getSize()}, actual: $size)");
+            //\Operations::status("Wrong size (expected: {$this->getSize()}, actual: $size)");
             return false;
         }
 
         // Check hash/contents to verify that the file is the same
         // TODO
 
-        //\Suggestions::status("Correct remote public file is in path");
+        //\Operations::status("Correct remote public file is in path");
         return true;
 
     }

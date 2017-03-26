@@ -87,7 +87,7 @@ trait PublicFilesS3FileTrait
      */
     public function ensureRemotePublicFileInstance()
     {
-        \Suggestions::status(__METHOD__);
+        \Operations::status(__METHOD__);
 
         /** @var \propel\models\File $this */
 
@@ -131,7 +131,7 @@ trait PublicFilesS3FileTrait
      */
     public function getEnsuredRemotePublicFileInstance()
     {
-        \Suggestions::status(__METHOD__);
+        \Operations::status(__METHOD__);
 
         /** @var \propel\models\File $this */
         $publicFilesS3Filesystem = $this->getPublicFilesS3Filesystem();
@@ -189,7 +189,7 @@ trait PublicFilesS3FileTrait
         \propel\models\FileInstance $fileInstance,
         $path
     ) {
-        \Suggestions::status(__METHOD__);
+        \Operations::status(__METHOD__);
 
         /** @var \propel\models\File $this */
         if ($fileInstance->getUri() !== $path) {
@@ -213,13 +213,13 @@ trait PublicFilesS3FileTrait
      */
     protected function checkIfCorrectRemotePublicFileIsInPath($path)
     {
-        \Suggestions::status(__METHOD__);
-        \Suggestions::status($path);
+        \Operations::status(__METHOD__);
+        \Operations::status($path);
 
         // Check if file exists
         $exists = $this->getPublicFilesS3Filesystem()->has($path);
         if (!$exists) {
-            //\Suggestions::status("Does not exist");
+            //\Operations::status("Does not exist");
             return false;
         }
 
@@ -234,14 +234,14 @@ trait PublicFilesS3FileTrait
         // Check if existing file has the correct size
         $size = $this->getPublicFilesS3Filesystem()->getSize($path);
         if ($size !== $this->getSize()) {
-            //\Suggestions::status("Wrong size (expected: {$this->getSize()}, actual: $size)");
+            //\Operations::status("Wrong size (expected: {$this->getSize()}, actual: $size)");
             return false;
         }
 
         // Check hash/contents to verify that the file is the same
         // TODO
 
-        //\Suggestions::status("Correct remote public file is in path");
+        //\Operations::status("Correct remote public file is in path");
         return true;
 
     }
