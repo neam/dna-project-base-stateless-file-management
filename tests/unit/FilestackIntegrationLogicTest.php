@@ -1,5 +1,6 @@
 <?php
 use Codeception\Util\Stub;
+use neam\stateless_file_management\File;
 
 class FilestackIntegrationLogicTest extends \Codeception\TestCase\Test
 {
