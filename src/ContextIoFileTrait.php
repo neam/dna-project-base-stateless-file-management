@@ -39,7 +39,7 @@ trait ContextIoFileTrait
 
     static public function restApiContextIoPublicUrlForwardingEndpoint(\propel\models\File $file)
     {
-        return "//" . APPVHOST . "/api/v0/file/{$file->getId()}?retrieveIMAPMailAttachment=1";
+        return "//" . APPVHOST . "/api/v0/file/{$file->getId()}?retrieveMailAttachment=1";
     }
 
     static protected function createFileInstanceWithMetadataFromContextIoAttachmentMetadata($contextIoAttachmentMetadata

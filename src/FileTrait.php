@@ -33,6 +33,7 @@ trait FileTrait
     use FilestackConvertibleFileTrait;
     use PublicFilesS3FileTrait;
     use ContextIoFileTrait;
+    use GmailApiFileTrait;
 
     /**
      * @propel
@@ -228,6 +229,10 @@ trait FileTrait
             ) && !empty($fileInstance->getUri())) {
             return $file->fileInstanceAbsoluteUrl($fileInstance);
         }
+        if (($fileInstance = $file->getFileInstanceRelatedByGmailApiFileInstanceId()
+            ) && !empty($fileInstance->getUri())) {
+            return $file->fileInstanceAbsoluteUrl($fileInstance);
+        }
         if (($fileInstance = $file->getFileInstanceRelatedByLocalFileInstanceId()
             ) && !empty($fileInstance->getUri())) {
             return $file->fileInstanceAbsoluteUrl($fileInstance);
@@ -272,6 +277,8 @@ trait FileTrait
                     return static::contextIoPublicUrl($fileInstance);
                 }
                 return static::restApiContextIoPublicUrlForwardingEndpoint($this);
+            case 'gmail-api':
+                return static::restApiGmailApiRemoteAttachmentDataStreamingEndpoint($this);
         }
         throw new Exception(
             "fileInstanceAbsoluteUrl() encountered an unsupported storage component ref ('$storageComponentRef')"
