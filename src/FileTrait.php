@@ -216,20 +216,20 @@ trait FileTrait
      */
     protected function absoluteUrl_propel(\propel\models\File $file)
     {
-        if (($fileInstance = $file->getFileInstanceRelatedByPublicFilesS3FileInstanceId(
-            )) && !empty($fileInstance->getUri())
-        ) {
+        if (($fileInstance = $file->getFileInstanceRelatedByPublicFilesS3FileInstanceId()
+            ) && !empty($fileInstance->getUri())) {
             return $file->fileInstanceAbsoluteUrl($fileInstance);
         }
-        if (($fileInstance = $file->getFileInstanceRelatedByFilestackFileInstanceId()) && !empty($fileInstance->getUri(
-            ))
-        ) {
+        if (($fileInstance = $file->getFileInstanceRelatedByFilestackFileInstanceId()
+            ) && !empty($fileInstance->getUri())) {
             return $file->fileInstanceAbsoluteUrl($fileInstance);
         }
-        if (($fileInstance = $file->getFileInstanceRelatedByContextIoFileInstanceId()) && !empty($fileInstance->getUri())) {
+        if (($fileInstance = $file->getFileInstanceRelatedByContextIoFileInstanceId()
+            ) && !empty($fileInstance->getUri())) {
             return $file->fileInstanceAbsoluteUrl($fileInstance);
         }
-        if (($fileInstance = $file->getFileInstanceRelatedByLocalFileInstanceId()) && !empty($fileInstance->getUri())) {
+        if (($fileInstance = $file->getFileInstanceRelatedByLocalFileInstanceId()
+            ) && !empty($fileInstance->getUri())) {
             return $file->fileInstanceAbsoluteUrl($fileInstance);
         }
         return null;

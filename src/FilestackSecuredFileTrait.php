@@ -16,9 +16,9 @@ trait FilestackSecuredFileTrait
         // Returned signed url
         $glue = strpos($filestackUrl, '?') === false ? '?' : '&';
         return $filestackUrl . $glue
-        . "signature=" . urlencode($signature)
-        . "&policy=" . urlencode($policy)
-        . ($cache ? "&cache=true" : "");
+            . "signature=" . urlencode($signature)
+            . "&policy=" . urlencode($policy)
+            . ($cache ? "&cache=true" : "");
 
     }
 

@@ -62,8 +62,8 @@ trait PublicFilesS3FileTrait
     {
         $path = trim(PUBLIC_FILES_S3_PATH, '/');
         return str_replace("s3://", "//", trim(PUBLIC_FILES_S3_BUCKET, '/')) . '/'
-        . ($path ? $path . '/' : '')
-        . DATA . '/';
+            . ($path ? $path . '/' : '')
+            . DATA . '/';
     }
 
     /**
