@@ -5,7 +5,7 @@ namespace neam\stateless_file_management;
 use GuzzleHttp;
 use propel\models\File;
 use propel\models\FileInstance;
-use ContextIO;
+use ContextIOHelper;
 
 trait ContextIoFileTrait
 {
@@ -26,12 +26,13 @@ trait ContextIoFileTrait
         $contextIoFileId = $data->contextIoAttachmentObject->file_id;
         $contextIoApiKey = $data->contextIoApiKey;
         $contextIoAccountId = $data->contextIoAccountId;
-        $contextIO = new ContextIO($contextIoApiKey, CONTEXT_IO_API_SECRET);
+        ContextIoHelper::contextIOAllowedAccountId($contextIoAccountId);
+        $contextIO = ContextIoHelper::contextIO();
         $params = [
             'file_id' => $contextIoFileId,
             'as_link' => 1
         ];
-        $publicUrl = $contextIO->getFileContent($contextIoAccountId, $params, $saveAs = null);
+        $publicUrl = $contextIO->getFileURL($contextIoAccountId, $params);
         return $publicUrl;
 
     }
