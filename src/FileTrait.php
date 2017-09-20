@@ -267,7 +267,7 @@ trait FileTrait
             case 'public-files-s3':
                 return static::publicFilesS3Url($fileInstance->getUri());
             case 'local':
-                // Local files are assumed published to a CDN
+                // Local files are for absolute url purposes assumed to be published to a CDN through some external routine
                 return CDN_PATH . 'media/' . $this->getPath();
             case 'filepicker':
             case 'filestack':

@@ -60,7 +60,7 @@ trait ContextIoEmailAttachmentFileTrait
         $contextIoAttachmentMetadata
     ) {
 
-        $fileInstance->setDataJson(json_encode($contextIoAttachmentMetadata));
+        $fileInstance->setDataJson(\AppJson::encode($contextIoAttachmentMetadata));
 
     }
 
@@ -84,7 +84,7 @@ trait ContextIoEmailAttachmentFileTrait
         \propel\models\FileInstance $fileInstance
     ) {
 
-        $contextIoAttachmentMetadata = json_decode($fileInstance->getDataJson());
+        $contextIoAttachmentMetadata = \AppJson::decode($fileInstance->getDataJson());
 
         $file->setSize($contextIoAttachmentMetadata->contextIoAttachmentObject->size);
         $file->setMimetype($contextIoAttachmentMetadata->contextIoAttachmentObject->type);
