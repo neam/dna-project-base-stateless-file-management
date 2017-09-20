@@ -32,8 +32,6 @@ trait FileTrait
     use FilestackSecuredFileTrait;
     use FilestackConvertibleFileTrait;
     use PublicFilesS3FileTrait;
-    use ContextIoEmailAttachmentFileTrait;
-    use GmailApiEmailAttachmentFileTrait;
 
     /**
      * @propel
@@ -173,74 +171,6 @@ trait FileTrait
     }
 
     /**
-     * Return the first available absolute url to an instance of the current file
-     * @propel
-     * @yii
-     * @return string
-     */
-    public function absoluteUrl()
-    {
-        if (get_class($this) === 'File') {
-            return $this->absoluteUrl_yii($this);
-        } else {
-            return $this->absoluteUrl_propel($this);
-        }
-    }
-
-    /**
-     * @yii
-     * @param \File $file
-     * @return mixed|null|string
-     */
-    protected function absoluteUrl_yii(\File $file)
-    {
-        if (($fileInstance = $file->publicFilesS3FileInstance) && !empty($fileInstance->uri)) {
-            return static::publicFilesS3Url($fileInstance->uri);
-        }
-        if (($fileInstance = $file->filestackFileInstance) && !empty($fileInstance->uri)) {
-            return static::filestackCdnUrl(static::signFilestackUrl($fileInstance->uri));
-        }
-        if (($fileInstance = $file->contextIoFileInstance) && !empty($fileInstance->uri)) {
-            throw new Exception("Absolute url for Yii apps not supported");
-        }
-        if (($fileInstance = $file->localFileInstance) && !empty($fileInstance->uri)) {
-            // Local files are assumed published to a CDN
-            return CDN_PATH . 'media/' . $file->path;
-        }
-        return null;
-    }
-
-    /**
-     * @propel
-     * @param \propel\models\File $file
-     * @return mixed|null|string
-     */
-    protected function absoluteUrl_propel(\propel\models\File $file)
-    {
-        if (($fileInstance = $file->getFileInstanceRelatedByPublicFilesS3FileInstanceId()
-            ) && !empty($fileInstance->getUri())) {
-            return $file->fileInstanceAbsoluteUrl($fileInstance);
-        }
-        if (($fileInstance = $file->getFileInstanceRelatedByFilestackFileInstanceId()
-            ) && !empty($fileInstance->getUri())) {
-            return $file->fileInstanceAbsoluteUrl($fileInstance);
-        }
-        if (($fileInstance = $file->getFileInstanceRelatedByContextIoFileInstanceId()
-            ) && !empty($fileInstance->getUri())) {
-            return $file->fileInstanceAbsoluteUrl($fileInstance);
-        }
-        if (($fileInstance = $file->getFileInstanceRelatedByGmailApiFileInstanceId()
-            ) && !empty($fileInstance->getUri())) {
-            return $file->fileInstanceAbsoluteUrl($fileInstance);
-        }
-        if (($fileInstance = $file->getFileInstanceRelatedByLocalFileInstanceId()
-            ) && !empty($fileInstance->getUri())) {
-            return $file->fileInstanceAbsoluteUrl($fileInstance);
-        }
-        return null;
-    }
-
-    /**
      * Return pending file instance (one that will be available at a later point in time)
      * @propel
      * @return string ''
@@ -250,40 +180,6 @@ trait FileTrait
         /** @var \propel\models\File $this */
         return $this->getFileInstanceRelatedByFilestackPendingFileInstanceId(
         ) ? $this->getFileInstanceRelatedByFilestackPendingFileInstanceId() : null;
-    }
-
-    /**
-     * @propel
-     * @param \propel\models\FileInstance $fileInstance
-     * @return mixed|string
-     * @throws Exception
-     */
-    public function fileInstanceAbsoluteUrl(\propel\models\FileInstance $fileInstance, $immediateDownload = false)
-    {
-
-        $storageComponentRef = $fileInstance->getStorageComponentRef();
-        /** @var \propel\models\File $this */
-        switch ($storageComponentRef) {
-            case 'public-files-s3':
-                return static::publicFilesS3Url($fileInstance->getUri());
-            case 'local':
-                // Local files are for absolute url purposes assumed to be published to a CDN through some external routine
-                return CDN_PATH . 'media/' . $this->getPath();
-            case 'filepicker':
-            case 'filestack':
-                return static::filestackCdnUrl(static::signFilestackUrl($fileInstance->getUri()));
-            case 'context-io':
-                if ($immediateDownload) {
-                    return static::contextIoEmailAttachmentPublicUrl($fileInstance);
-                }
-                return static::restApiContextIoEmailAttachmentPublicUrlForwardingEndpoint($this);
-            case 'gmail-api':
-                return static::restApiGmailApiRemoteAttachmentDataStreamingEndpoint($this);
-        }
-        throw new Exception(
-            "fileInstanceAbsoluteUrl() encountered an unsupported storage component ref ('$storageComponentRef')"
-        );
-
     }
 
 }
