@@ -32,8 +32,8 @@ trait FileTrait
     use FilestackSecuredFileTrait;
     use FilestackConvertibleFileTrait;
     use PublicFilesS3FileTrait;
-    use ContextIoFileTrait;
-    use GmailApiFileTrait;
+    use ContextIoEmailAttachmentFileTrait;
+    use GmailApiEmailAttachmentFileTrait;
 
     /**
      * @propel
@@ -274,9 +274,9 @@ trait FileTrait
                 return static::filestackCdnUrl(static::signFilestackUrl($fileInstance->getUri()));
             case 'context-io':
                 if ($immediateDownload) {
-                    return static::contextIoPublicUrl($fileInstance);
+                    return static::contextIoEmailAttachmentPublicUrl($fileInstance);
                 }
-                return static::restApiContextIoPublicUrlForwardingEndpoint($this);
+                return static::restApiContextIoEmailAttachmentPublicUrlForwardingEndpoint($this);
             case 'gmail-api':
                 return static::restApiGmailApiRemoteAttachmentDataStreamingEndpoint($this);
         }

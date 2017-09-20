@@ -8,7 +8,7 @@ use propel\models\FileInstance;
 use AppJson;
 use GmailApiMessageObjectParser;
 
-trait GmailApiFileTrait
+trait GmailApiEmailAttachmentFileTrait
 {
 
     public function ensureLocalGmailApiAttachmentData(\propel\models\FileInstance $fileInstance)
@@ -113,7 +113,7 @@ trait GmailApiFileTrait
             $fileInstance = static::createFileInstanceWithMetadataFromGmailApiAttachmentMetadata(
                 $gmailApiAttachmentMetadata
             );
-            static::setFileMetadataFromGmailApiFileInstanceMetadata($file, $fileInstance);
+            static::setFileMetadataFromGmailApiEmailAttachmentFileInstanceMetadata($file, $fileInstance);
             $file->setFileInstanceRelatedByGmailApiFileInstanceId($fileInstance);
         }
 
@@ -127,7 +127,7 @@ trait GmailApiFileTrait
 
     }
 
-    static protected function setFileMetadataFromGmailApiFileInstanceMetadata(
+    static protected function setFileMetadataFromGmailApiEmailAttachmentFileInstanceMetadata(
         \propel\models\File &$file,
         \propel\models\FileInstance $fileInstance
     ) {

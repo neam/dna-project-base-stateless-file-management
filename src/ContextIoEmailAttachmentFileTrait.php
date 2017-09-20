@@ -7,7 +7,7 @@ use propel\models\File;
 use propel\models\FileInstance;
 use \ContextIoHelper;
 
-trait ContextIoFileTrait
+trait ContextIoEmailAttachmentFileTrait
 {
 
     /**
@@ -20,7 +20,7 @@ trait ContextIoFileTrait
      * @param FileInstance $fileInstance
      * @return mixed
      */
-    static public function contextIoPublicUrl(\propel\models\FileInstance $fileInstance)
+    static public function contextIoEmailAttachmentPublicUrl(\propel\models\FileInstance $fileInstance)
     {
         $data = json_decode($fileInstance->getDataJson());
         $contextIoFileId = $data->contextIoAttachmentObject->file_id;
@@ -30,15 +30,15 @@ trait ContextIoFileTrait
         $contextIO = ContextIoHelper::contextIO();
         $response = $contextIO->getFileURL($contextIoAccountId, $contextIoFileId);
         if (!$response) {
-            throw new ContextIoPublicUrlException('Fetching of the context.io attachment resource url failed');
+            throw new ContextIoEmailAttachmentPublicUrlException('Fetching of the context.io attachment resource url failed');
         }
         $publicUrl = $response->getRawResponse();
         return $publicUrl;
     }
 
-    static public function restApiContextIoPublicUrlForwardingEndpoint(\propel\models\File $file)
+    static public function restApiContextIoEmailAttachmentPublicUrlForwardingEndpoint(\propel\models\File $file)
     {
-        return "//" . APPVHOST . "/api/v0/file/{$file->getId()}?retrieveMailAttachment=1";
+        return "//" . APPVHOST . "/api/v0/file/{$file->getId()}?retrieveEmailAttachment=1";
     }
 
     static protected function createFileInstanceWithMetadataFromContextIoAttachmentMetadata($contextIoAttachmentMetadata
@@ -72,29 +72,29 @@ trait ContextIoFileTrait
         );
 
         $file = new File();
-        static::setFileMetadataFromContextIoFileInstanceMetadata($file, $fileInstance);
+        static::setFileMetadataFromContextIoEmailAttachmentFileInstanceMetadata($file, $fileInstance);
         $file->setFileInstanceRelatedByContextIoFileInstanceId($fileInstance);
 
         return $file;
 
     }
 
-    static protected function setFileMetadataFromContextIoFileInstanceMetadata(
+    static protected function setFileMetadataFromContextIoEmailAttachmentFileInstanceMetadata(
         \propel\models\File &$file,
         \propel\models\FileInstance $fileInstance
     ) {
 
-        $data = json_decode($fileInstance->getDataJson());
+        $contextIoAttachmentMetadata = json_decode($fileInstance->getDataJson());
 
-        $file->setSize($data->contextIoAttachmentObject->size);
-        $file->setMimetype($data->contextIoAttachmentObject->type);
-        $file->setFilename($data->contextIoAttachmentObject->file_name);
-        $file->setOriginalFilename($data->contextIoAttachmentObject->file_name);
+        $file->setSize($contextIoAttachmentMetadata->contextIoAttachmentObject->size);
+        $file->setMimetype($contextIoAttachmentMetadata->contextIoAttachmentObject->type);
+        $file->setFilename($contextIoAttachmentMetadata->contextIoAttachmentObject->file_name);
+        $file->setOriginalFilename($contextIoAttachmentMetadata->contextIoAttachmentObject->file_name);
 
     }
 
 }
 
-class ContextIoPublicUrlException extends \Exception
+class ContextIoEmailAttachmentPublicUrlException extends \Exception
 {
 }
