@@ -5,7 +5,7 @@ namespace neam\stateless_file_management;
 use GuzzleHttp;
 use propel\models\File;
 use propel\models\FileInstance;
-use ContextIOHelper;
+use \ContextIoHelper;
 
 trait ContextIoFileTrait
 {
@@ -28,13 +28,12 @@ trait ContextIoFileTrait
         $contextIoAccountId = $data->contextIoAccountId;
         ContextIoHelper::contextIOAllowedAccountId($contextIoAccountId);
         $contextIO = ContextIoHelper::contextIO();
-        $params = [
-            'file_id' => $contextIoFileId,
-            'as_link' => 1
-        ];
-        $publicUrl = $contextIO->getFileURL($contextIoAccountId, $params);
+        $response = $contextIO->getFileURL($contextIoAccountId, $contextIoFileId);
+        if (!$response) {
+            throw new ContextIoPublicUrlException('Fetching of the context.io attachment resource url failed');
+        }
+        $publicUrl = $response->getRawResponse();
         return $publicUrl;
-
     }
 
     static public function restApiContextIoPublicUrlForwardingEndpoint(\propel\models\File $file)
@@ -94,4 +93,8 @@ trait ContextIoFileTrait
 
     }
 
+}
+
+class ContextIoPublicUrlException extends \Exception
+{
 }
