@@ -90,9 +90,9 @@ trait FilestackConvertibleFileTrait
                 );
             } catch (FilestackMovieConversionAttemptException $e) {
                 $exception = $e;
-            } catch (\GuzzleHttp\Exception\ConnectException $e) {
+            } catch (GuzzleHttp\Exception\ConnectException $e) {
                 $exception = $e;
-            } catch (\GuzzleHttp\Exception\ClientException $e) {
+            } catch (GuzzleHttp\Exception\ClientException $e) {
                 $exception = $e;
             }
 

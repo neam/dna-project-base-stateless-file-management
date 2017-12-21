@@ -98,8 +98,7 @@ trait FileTrait
     public function localFileInstance()
     {
         /** @var \propel\models\File $this */
-        return $this->getFileInstanceRelatedByLocalFileInstanceId(
-        ) ? $this->getFileInstanceRelatedByLocalFileInstanceId() : null;
+        return $this->getFileInstanceRelatedByLocalFileInstanceId() ? $this->getFileInstanceRelatedByLocalFileInstanceId() : null;
     }
 
     /**
@@ -178,8 +177,7 @@ trait FileTrait
     public function pendingFileInstance()
     {
         /** @var \propel\models\File $this */
-        return $this->getFileInstanceRelatedByFilestackPendingFileInstanceId(
-        ) ? $this->getFileInstanceRelatedByFilestackPendingFileInstanceId() : null;
+        return $this->getFileInstanceRelatedByFilestackPendingFileInstanceId() ? $this->getFileInstanceRelatedByFilestackPendingFileInstanceId() : null;
     }
 
 }
