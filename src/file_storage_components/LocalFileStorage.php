@@ -10,6 +10,21 @@ use Exception;
 class LocalFileStorage implements FileStorage
 {
 
+    /**
+     * @var \propel\models\File
+     */
+    protected $file;
+
+    static public function create(\propel\models\File $file)
+    {
+        return new LocalFileStorage($file);
+    }
+
+    public function __construct(\propel\models\File $file)
+    {
+        $this->file =& $file;
+    }
+
     protected $localFilesystem;
 
     /**
@@ -46,10 +61,10 @@ class LocalFileStorage implements FileStorage
         if ($ensure) {
             $this->ensureCorrectLocalFile();
         }
-        if (empty($this->getPath())) {
+        if (empty($this->file->getPath())) {
             throw new Exception("File's path not set");
         }
-        return $this->getPath();
+        return $this->file->getPath();
     }
 
     /**
@@ -70,16 +85,64 @@ class LocalFileStorage implements FileStorage
         return $this->getLocalBasePath() . $this->getPathForManipulation($ensure = false);
     }
 
+    public function ensuredLocallyGuessedMimetype()
+    {
+
+        // Actually downloads the file
+        $inputFilePath = $this->getAbsoluteLocalPath();
+
+        // Detects the mime type primarily by file contents
+        $mimeType = \MimeType::guessMimeType($inputFilePath);
+
+        // TODO: Store guess in order to prevent repeated downloads of the file only for mimetype-guessing
+
+        return $mimeType;
+
+    }
+
+    /**
+     * @param null $localPath
+     * @throws Exception
+     * @throws \Propel\Runtime\Exception\PropelException
+     */
+    public function determineFileMetadata($localPath = null)
+    {
+        $file = $this->file;
+
+        if ($localPath === null) {
+            $localFileInstance = $this->getEnsuredLocalFileInstance();
+            $localPath = $localFileInstance->getUri();
+        }
+
+        if (empty($file->getMimetype())) {
+            $file->setMimetype($this->getLocalFilesystem()->getMimetype($localPath));
+        }
+        if ($file->getSize() === null) {
+            $file->setSize($this->getLocalFilesystem()->getSize($localPath));
+        }
+        if (empty($file->getFilename())) {
+            $absoluteLocalPath = $this->getLocalBasePath() . $localPath;
+            $filename = pathinfo($absoluteLocalPath, PATHINFO_FILENAME);
+            $file->setFilename($filename);
+        }
+        // TODO: hash/checksum
+        // $md5 = md5_file($absoluteLocalPath);
+        // Possible TODO: image width/height if image
+        // getimagesize($absoluteLocalPath)
+
+    }
+
     public function putContents($fileContents)
     {
-        /** @var \propel\models\File $this */
-        $path = $this->ensureCorrectPath();
+        $file = $this->file;
+
+        $path = $file->ensureCorrectPath();
         if ($this->getLocalFilesystem()->has($path)) {
             $this->getLocalFilesystem()->delete($path);
         }
         $this->getLocalFilesystem()->write($path, $fileContents);
-        $this->setMimetype(null);
-        $this->setSize(null);
+        $file->setMimetype(null);
+        $file->setSize(null);
         $this->determineFileMetadata($path);
         if (!$this->checkIfCorrectLocalFileIsInPath($path)) {
             throw new Exception("Put file contents failed");
@@ -101,13 +164,13 @@ class LocalFileStorage implements FileStorage
     {
         \Operations::status(__METHOD__);
 
-        /** @var \propel\models\File $this */
+        $file = $this->file;
 
         // Get the ensured local file instance with a binary copy of the file (binary copy is guaranteed to be found at this file instance's uri but not necessarily in the correct path)
         $localFileInstance = $this->getEnsuredLocalFileInstance();
 
         // Move the local file instance to correct path if not already there
-        $correctPath = $this->getCorrectPath();
+        $correctPath = $file->getCorrectPath();
         $this->moveTheLocalFileInstanceToPathIfNotAlreadyThere($localFileInstance, $correctPath);
 
         // Dummy check
@@ -125,28 +188,27 @@ class LocalFileStorage implements FileStorage
         }
 
         // Set the correct path in file.path
-        if ($this->getPath() !== $correctPath) {
-            $this->setPath($correctPath);
+        if ($file->getPath() !== $correctPath) {
+            $file->setPath($correctPath);
         }
 
         // Save the file and file instance only first now when we know it is in place
         $localFileInstance->save();
-        $this->save();
+        $file->save();
 
     }
 
     protected function createLocalFileInstanceIfNecessary()
     {
-
-        /** @var \propel\models\File $this */
-        $localFileInstance = $this->localFileInstance();
+        $file = $this->file;
+        $localFileInstance = $file->localFileInstance();
 
         // Create a local file instance since none exists - but do not save it until we have put the binary in place...
         if (empty($localFileInstance)) {
-            $correctPath = $this->getCorrectPath();
+            $correctPath = $file->getCorrectPath();
             $localFileInstance = new \propel\models\FileInstance();
             $localFileInstance->setStorageComponentRef('local');
-            $this->setFileInstanceRelatedByLocalFileInstanceId($localFileInstance);
+            $file->setFileInstanceRelatedByLocalFileInstanceId($localFileInstance);
         }
 
         return $localFileInstance;
@@ -245,9 +307,9 @@ class LocalFileStorage implements FileStorage
             return false;
         }
 
-        /** @var \propel\models\File $this */
+        $file = $this->file;
 
-        if ($this->getSize() === null) {
+        if ($file->getSize() === null) {
             throw new Exception(
                 "A file already exists in the path ('{$path}') but we can't compare it to the expected file size since it is missing from the file record ('{$this->getId()}') metadata"
             );
@@ -255,7 +317,7 @@ class LocalFileStorage implements FileStorage
 
         // Check if existing file has the correct size
         $size = $this->getLocalFilesystem()->getSize($path);
-        if ($size !== $this->getSize()) {
+        if ($size !== $file->getSize()) {
             //\Operations::status("Wrong size (expected: {$this->getSize()}, actual: $size)");
             return false;
         }
