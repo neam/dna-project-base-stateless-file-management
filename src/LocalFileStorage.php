@@ -173,15 +173,8 @@ trait LocalFileTrait
         }
         if (!$this->checkIfCorrectLocalFileIsInPath($path)) {
 
-            $remoteFileInstance = $this->remoteFileInstance();
-            if (empty($remoteFileInstance)) {
-                throw new Exception("No file instance available to get a binary copy of the file from");
-            }
-
-            // Download to a temporary location
-            $publicUrl = $this->fileInstanceAbsoluteUrl($remoteFileInstance, $immediateDownload = true);
-            $tmpStream = tmpfile();
-            $this->downloadRemoteFileToStream($publicUrl, $tmpStream);
+            // Interface method for getting the remote binary into a local file stream
+            $tmpStream = $this->fetchIntoStream();
 
             // Remove any existing incorrect file in the location
             try {
@@ -208,7 +201,8 @@ trait LocalFileTrait
     protected function moveTheLocalFileInstanceToPathIfNotAlreadyThere(
         \propel\models\FileInstance $fileInstance,
         $path
-    ) {
+    )
+    {
         \Operations::status(__METHOD__);
 
         if (empty($path)) {
