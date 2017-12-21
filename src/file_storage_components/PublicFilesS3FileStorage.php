@@ -1,6 +1,6 @@
 <?php
 
-namespace neam\stateless_file_management;
+namespace neam\stateless_file_management\file_storage_components;
 
 use Aws\S3\S3Client;
 use League\Flysystem\AdapterInterface;
