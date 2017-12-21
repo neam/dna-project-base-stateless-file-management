@@ -2,7 +2,7 @@
 
 namespace neam\stateless_file_management;
 
-use GuzzleHttp;
+use AppJson;
 use propel\models\File;
 use propel\models\FileInstance;
 
@@ -55,7 +55,7 @@ trait FilestackFileTrait
         $response = $client->get($requestUrl);
 
         $data = new \stdClass();
-        $data->fpfile = GuzzleHttp\Utils::jsonDecode($response->getBody());
+        $data->fpfile = AppJson::decode($response->getBody());
         $data->fpkey = FILESTACK_API_KEY;
 
         $fileInstance->setDataJson(json_encode($data));

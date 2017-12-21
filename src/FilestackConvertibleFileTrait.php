@@ -2,6 +2,7 @@
 
 namespace neam\stateless_file_management;
 
+use AppJson;
 use GuzzleHttp;
 use propel\models\File;
 use Exception;
@@ -30,7 +31,7 @@ trait FilestackConvertibleFileTrait
     {
         /** @var \propel\models\File $this */
         if ($fileInstance = $this->getFileInstanceRelatedByFilestackPendingFileInstanceId()) {
-            $data = GuzzleHttp\Utils::jsonDecode($fileInstance->getDataJson());
+            $data = AppJson::decode($fileInstance->getDataJson());
             if (isset($data->convertMetadata)) {
                 return $data->convertMetadata;
             }
@@ -46,7 +47,7 @@ trait FilestackConvertibleFileTrait
             $fileInstance->setStorageComponentRef('filestack-pending');
             $this->setFileInstanceRelatedByFilestackPendingFileInstanceId($fileInstance);
         }
-        $data = GuzzleHttp\Utils::jsonDecode($fileInstance->getDataJson());
+        $data = AppJson::decode($fileInstance->getDataJson());
         if (empty($data)) {
             $data = new \stdClass();
         }
@@ -78,7 +79,7 @@ trait FilestackConvertibleFileTrait
         $exception = null;
 
         try {
-            $convertConfig = GuzzleHttp\Utils::jsonDecode($convertConfigJson);
+            $convertConfig = AppJson::decode($convertConfigJson);
 
             try {
                 File::attemptFilestackMovieConversion(
@@ -225,7 +226,7 @@ trait FilestackConvertibleFileTrait
         // Perform request with a short timeout
         $client = new GuzzleHttp\Client();
         $response = $client->get($filestackRequestUrl, ['connect_timeout' => 2]);
-        return GuzzleHttp\Utils::jsonDecode($response->getBody());
+        return AppJson::decode($response->getBody());
 
     }
 
