@@ -14,7 +14,7 @@ use propel\models\FileInstance;
  * Class FilestackConvertibleFileTrait
  * @package neam\stateless_file_management
  */
-trait FilestackConvertibleFileTrait
+class FilestackConvertibleFileStorage implements FileStorage
 {
 
     /**

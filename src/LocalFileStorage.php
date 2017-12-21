@@ -7,7 +7,7 @@ use League\Flysystem\Filesystem;
 use League\Flysystem\Adapter\Local;
 use Exception;
 
-trait LocalFileTrait
+class LocalFileStorage implements FileStorage
 {
 
     protected $localFilesystem;

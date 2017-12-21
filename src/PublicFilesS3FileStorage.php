@@ -9,7 +9,7 @@ use League\Flysystem\FileNotFoundException;
 use League\Flysystem\Filesystem;
 use Exception;
 
-trait PublicFilesS3FileTrait
+class PublicFilesS3FileStorage implements FileStorage
 {
 
     protected $publicFilesS3Filesystem;

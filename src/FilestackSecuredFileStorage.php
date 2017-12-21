@@ -2,7 +2,7 @@
 
 namespace neam\stateless_file_management;
 
-trait FilestackSecuredFileTrait
+class FilestackSecuredFileStorage implements FileStorage
 {
 
     static public function signFilestackUrl($filestackUrl, $admin = false, $cache = true)

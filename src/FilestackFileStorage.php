@@ -6,7 +6,7 @@ use AppJson;
 use propel\models\File;
 use propel\models\FileInstance;
 
-trait FilestackFileTrait
+class FilestackFileStorage implements FileStorage
 {
 
     static public function filestackCdnUrl($filestackUrl)

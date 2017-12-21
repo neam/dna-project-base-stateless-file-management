@@ -15,7 +15,7 @@ use Operations;
  *  §4 File instance records tell us where binary copies of the file are stored
  *  §5 File instances should (if possible) store it's binary copy using the relative path provided by $file->getPath(), so that retrieval of the file's binary contents is straightforward and eventual public url's follow the official path/name supplied by $file->getPath()
  *
- * Current storage components handled by this trait:
+ * Current storage components handled:
  *  - local (implies that the binary is stored locally)
  *  - filestack (implies that the binary is stored at filestack)
  *  - filestack-pending (implies that the binary is pending an asynchronous task to finish, after which point the instance will be converted into a 'filestack' instance)
@@ -26,12 +26,6 @@ use Operations;
  */
 trait FileTrait
 {
-
-    use LocalFileTrait;
-    use FilestackFileTrait;
-    use FilestackSecuredFileTrait;
-    use FilestackConvertibleFileTrait;
-    use PublicFilesS3FileTrait;
 
     /**
      * @propel
