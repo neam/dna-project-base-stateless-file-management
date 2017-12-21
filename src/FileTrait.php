@@ -87,6 +87,38 @@ trait FileTrait
 
     /**
      * @propel
+     * @throws Exception
+     * @throws \Propel\Runtime\Exception\PropelException
+     */
+    public function determineFileMetadata($localPath = null)
+    {
+        /** @var \propel\models\File $this */
+
+        if ($localPath === null) {
+            $localFileInstance = $this->getEnsuredLocalFileInstance();
+            $localPath = $localFileInstance->getUri();
+        }
+
+        if (empty($this->getMimetype())) {
+            $this->setMimetype($this->getLocalFilesystem()->getMimetype($localPath));
+        }
+        if ($this->getSize() === null) {
+            $this->setSize($this->getLocalFilesystem()->getSize($localPath));
+        }
+        if (empty($this->getFilename())) {
+            $absoluteLocalPath = $this->getLocalBasePath() . $localPath;
+            $filename = pathinfo($absoluteLocalPath, PATHINFO_FILENAME);
+            $this->setFilename($filename);
+        }
+        // TODO: hash/checksum
+        // $md5 = md5_file($absoluteLocalPath);
+        // Possible TODO: image width/height if image
+        // getimagesize($absoluteLocalPath)
+
+    }
+
+    /**
+     * @propel
      * @return mixed|null|\propel\models\FileInstance
      */
     public function localFileInstance()
@@ -129,38 +161,6 @@ trait FileTrait
             return $fileInstance;
         }
         return null;
-    }
-
-    /**
-     * @propel
-     * @throws Exception
-     * @throws \Propel\Runtime\Exception\PropelException
-     */
-    public function determineFileMetadata($localPath = null)
-    {
-        /** @var \propel\models\File $this */
-
-        if ($localPath === null) {
-            $localFileInstance = $this->getEnsuredLocalFileInstance();
-            $localPath = $localFileInstance->getUri();
-        }
-
-        if (empty($this->getMimetype())) {
-            $this->setMimetype($this->getLocalFilesystem()->getMimetype($localPath));
-        }
-        if ($this->getSize() === null) {
-            $this->setSize($this->getLocalFilesystem()->getSize($localPath));
-        }
-        if (empty($this->getFilename())) {
-            $absoluteLocalPath = $this->getLocalBasePath() . $localPath;
-            $filename = pathinfo($absoluteLocalPath, PATHINFO_FILENAME);
-            $this->setFilename($filename);
-        }
-        // TODO: hash/checksum
-        // $md5 = md5_file($absoluteLocalPath);
-        // Possible TODO: image width/height if image
-        // getimagesize($absoluteLocalPath)
-
     }
 
     /**
