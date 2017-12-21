@@ -48,7 +48,7 @@ trait FilestackSecuredFileTrait
     {
 
         $ten_year_expiry = strval(intval(time() + 60 * 60 * 24 * 365 * 10)); // 10 years
-        return '{"call":["pick"],"expiry":' . $ten_year_expiry . '}';
+        return '{"call":["pick","store"],"expiry":' . $ten_year_expiry . '}';
 
     }
 
