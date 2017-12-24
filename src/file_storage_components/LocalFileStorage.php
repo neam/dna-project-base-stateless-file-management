@@ -206,6 +206,9 @@ class LocalFileStorage implements FileStorage
         // Get the ensured local file instance with a binary copy of the file (binary copy is guaranteed to be found at this file instance's uri but not necessarily in the correct path)
         $localFileInstance = $this->getEnsuredLocalFileInstance();
 
+        // Ensure metadata
+        $this->determineFileMetadata($localFileInstance->getUri());
+
         // Move the local file instance to correct path if not already there
         $correctPath = $file->getCorrectPath();
         $this->moveTheLocalFileInstanceToPathIfNotAlreadyThere($localFileInstance, $correctPath);
@@ -274,7 +277,8 @@ class LocalFileStorage implements FileStorage
         if (empty($path)) {
             $path = $file->getCorrectPath();
         }
-        if (!$this->checkIfCorrectLocalFileIsInPath($path)) {
+        // Only download if we can't determine if the correct file is already in place, or if we can determine it and we see that the wrong content is downloaded
+        if ($file->getSize() === null || !$this->checkIfCorrectLocalFileIsInPath($path)) {
 
             $fileStorage = $file->firstAvailableFileStorage();
 
@@ -364,7 +368,7 @@ class LocalFileStorage implements FileStorage
 
         if ($file->getSize() === null) {
             throw new Exception(
-                "A file already exists in the path ('{$path}') but we can't compare it to the expected file size since it is missing from the file record ('{$this->getId()}') metadata"
+                "A file already exists in the path ('{$path}') but we can't compare it to the expected file size since it is missing from the file record ('{$file->getId()}') metadata"
             );
         }
 
@@ -378,7 +382,7 @@ class LocalFileStorage implements FileStorage
         // Check hash/contents to verify that the file is the same
         // TODO
 
-        //\Operations::status("Correct remote public file is in path");
+        //\Operations::status("Correct local file is in path");
         return true;
 
     }
