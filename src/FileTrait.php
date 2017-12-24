@@ -143,9 +143,6 @@ trait FileTrait
         if ($fileInstance = $this->getFileInstanceRelatedByFilestackFileInstanceId()) {
             return $fileInstance;
         }
-        if ($fileInstance = $this->getFileInstanceRelatedByContextIoFileInstanceId()) {
-            return $fileInstance;
-        }
         if ($fileInstance = $this->getFileInstanceRelatedByPublicFilesS3FileInstanceId()) {
             return $fileInstance;
         }
