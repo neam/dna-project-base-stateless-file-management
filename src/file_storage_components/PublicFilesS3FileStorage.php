@@ -40,7 +40,7 @@ class PublicFilesS3FileStorage implements FileStorage
 
     public function absoluteUrl()
     {
-        return static::publicFilesS3Url($this->fileInstance->getUri());
+        return "https:" . static::publicFilesS3Url($this->fileInstance->getUri());
     }
 
     public function fileContents()
