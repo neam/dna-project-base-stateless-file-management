@@ -3,11 +3,52 @@
 namespace neam\stateless_file_management\file_storage_components;
 
 use AppJson;
+use GuzzleHttp;
 use propel\models\File;
 use propel\models\FileInstance;
+use Exception;
 
 class FilestackFileStorage implements FileStorage
 {
+
+    use FilestackSecuredFileStorageTrait;
+    use FilestackConvertibleFileStorageTrait;
+
+    /**
+     * @var \propel\models\File
+     */
+    protected $file;
+
+    /**
+     * @var \propel\models\FileInstance
+     */
+    protected $fileInstance;
+
+    static public function create(File $file, FileInstance $fileInstance)
+    {
+        return new FilestackFileStorage($file, $fileInstance);
+    }
+
+    public function __construct(File $file, FileInstance $fileInstance)
+    {
+        $this->file =& $file;
+        $this->fileInstance =& $fileInstance;
+    }
+
+    public function absoluteUrl()
+    {
+        return static::filestackCdnUrl(static::signFilestackUrl($this->fileInstance->getUri()));
+    }
+
+    public function fileContents()
+    {
+        $targetFileHandle = tmpfile();
+        if (!is_resource($targetFileHandle)) {
+            throw new Exception("Could not create a temporary file");
+        }
+        $url = $this->absoluteUrl();
+        return $this->file->downloadRemoteFileToStream($url, $targetFileHandle);
+    }
 
     static public function filestackCdnUrl($filestackUrl)
     {
@@ -46,7 +87,8 @@ class FilestackFileStorage implements FileStorage
     static public function decorateFileInstanceWithFilestackMetadataByFilestackUrl(
         \propel\models\FileInstance $fileInstance,
         $filestackUrl
-    ) {
+    )
+    {
 
         $handle = static::extractHandleFromFilestackUrl($filestackUrl);
         $client = new GuzzleHttp\Client();
@@ -98,9 +140,10 @@ class FilestackFileStorage implements FileStorage
     static public function setFileMetadataFromFilestackFileInstanceMetadata(
         \propel\models\File &$file,
         \propel\models\FileInstance $fileInstance
-    ) {
+    )
+    {
 
-        $data = json_decode($fileInstance->getDataJson());
+        $data = AppJson::decode($fileInstance->getDataJson());
 
         $file->setSize($data->fpfile->size);
         $file->setMimetype($data->fpfile->mimetype);

@@ -6,6 +6,9 @@ use League\Flysystem\FileNotFoundException;
 use League\Flysystem\Filesystem;
 use League\Flysystem\Adapter\Local;
 use Exception;
+use propel\models\File;
+use propel\models\FileInstance;
+use DateTime;
 
 class LocalFileStorage implements FileStorage
 {
@@ -15,14 +18,50 @@ class LocalFileStorage implements FileStorage
      */
     protected $file;
 
-    static public function create(\propel\models\File $file)
+    /**
+     * @var \propel\models\FileInstance
+     */
+    protected $fileInstance;
+
+    static public function create(File $file, FileInstance $fileInstance = null)
     {
-        return new LocalFileStorage($file);
+        return new LocalFileStorage($file, $fileInstance);
     }
 
-    public function __construct(\propel\models\File $file)
+    public function __construct(File $file, FileInstance $fileInstance = null)
     {
         $this->file =& $file;
+        if ($fileInstance !== null) {
+            $this->fileInstance =& $fileInstance;
+        }
+    }
+
+    public function absoluteUrl()
+    {
+        // Local files are for absolute url purposes assumed to be published to a CDN through some external routine
+        return CDN_PATH . 'media/' . $this->file->getPath();
+    }
+
+    public function fileContents()
+    {
+        $file = $this->file;
+        $path = $file->ensureCorrectPath();
+        if (!$this->getLocalFilesystem()->has($path)) {
+            throw new Exception("File contents can not be returned since there is no file at the expected path in the local file system");
+        }
+        return $this->getLocalFilesystem()->readStream($path);
+    }
+
+    public function deliverFileContentsAsHttpResponse()
+    {
+        // TODO: Set output headers based on mimetype etc
+        $stream = $this->fileContents();
+        $BUFSIZ = 4095;
+        while (!feof($stream)) {
+            fread($stream, $BUFSIZ);
+        }
+        fclose($stream);
+        exit();
     }
 
     protected $localFilesystem;
@@ -57,14 +96,14 @@ class LocalFileStorage implements FileStorage
      */
     public function getPathForManipulation($ensure = true)
     {
-        /** @var \propel\models\File $this */
+        $file = $this->file;
         if ($ensure) {
             $this->ensureCorrectLocalFile();
         }
-        if (empty($this->file->getPath())) {
+        if (empty($file->getPath())) {
             throw new Exception("File's path not set");
         }
-        return $this->file->getPath();
+        return $file->getPath();
     }
 
     /**
@@ -75,13 +114,11 @@ class LocalFileStorage implements FileStorage
      */
     public function getAbsoluteLocalPath($ensure = true)
     {
-        /** @var \propel\models\File $this */
         return $this->getLocalBasePath() . $this->getPathForManipulation($ensure);
     }
 
     public function getExpectedAbsoluteLocalPath()
     {
-        /** @var \propel\models\File $this */
         return $this->getLocalBasePath() . $this->getPathForManipulation($ensure = false);
     }
 
@@ -173,16 +210,20 @@ class LocalFileStorage implements FileStorage
         $correctPath = $file->getCorrectPath();
         $this->moveTheLocalFileInstanceToPathIfNotAlreadyThere($localFileInstance, $correctPath);
 
-        // Dummy check
+        // Dummy check (catching issues during development rather than anything that is likely to happen when things are up and running)
         if (!$this->checkIfCorrectLocalFileIsInPath($correctPath)) {
-            if ($this->getPublicFilesS3Filesystem()->has($correctPath)) {
+            if ($this->getLocalFilesystem()->has($correctPath)) {
                 $metadata = $this->getLocalFilesystem()->getMetadata($correctPath);
             } else {
                 $metadata = ["not-in-path"];
             }
 
+            if (isset($metadata["timestamp"])) {
+                $metadata["timestamp_YmdHis"] = DateTime::createFromFormat("U", $metadata["timestamp"])->format("Y-m-d H:i:s");
+            }
+
             throw new Exception(
-                "ensureCorrectLocalFile() failure - local file instance's (id '{$localFileInstance->getId()}') file (id '{$this->getId()}', with expected size {$this->getSize()}) is not in path ('$correctPath') after an attempted move to correct that. Currently in path: "
+                "ensureCorrectLocalFile() failure - local file instance's (id '{$localFileInstance->getId()}', storage component ref '{$localFileInstance->getStorageComponentRef()}') file (id '{$file->getId()}', with expected size {$file->getSize()}) is not in path ('$correctPath') after an attempted move to correct that. Currently in path: "
                 . print_r($metadata, true)
             );
         }
@@ -225,18 +266,26 @@ class LocalFileStorage implements FileStorage
     {
         \Operations::status(__METHOD__);
 
-        /** @var \propel\models\File $this */
+        $file = $this->file;
         $localFileInstance = $this->createLocalFileInstanceIfNecessary();
 
         // Download the file to where it is expected to be found
         $path = $localFileInstance->getUri();
         if (empty($path)) {
-            $path = $this->getCorrectPath();
+            $path = $file->getCorrectPath();
         }
         if (!$this->checkIfCorrectLocalFileIsInPath($path)) {
 
+            $fileStorage = $file->firstAvailableFileStorage();
+
+            if ($fileStorage instanceof LocalFileStorage) {
+                throw new Exception("The first available file storage can't be local file storage when we are ensuring local files");
+            }
+
+            \Operations::status("First available file storage: " . get_class($fileStorage));
+
             // Interface method for getting the remote binary into a local file stream
-            $tmpStream = $this->fetchIntoStream();
+            $fileContents = $fileStorage->fileContents();
 
             // Remove any existing incorrect file in the location
             try {
@@ -245,7 +294,11 @@ class LocalFileStorage implements FileStorage
             }
 
             // Save the downloaded file to specified path
-            $this->getLocalFilesystem()->writeStream($path, $tmpStream);
+            if (is_resource($fileContents)) {
+                $this->getLocalFilesystem()->writeStream($path, $fileContents);
+            } else {
+                $this->getLocalFilesystem()->write($path, $fileContents);
+            }
 
         }
 
@@ -275,7 +328,7 @@ class LocalFileStorage implements FileStorage
             throw new Exception("File instance with id '{$fileInstance->getId()}' has an empty uri/path");
         }
 
-        /** @var \propel\models\File $this */
+        $file = $this->file;
         if ($fileInstance->getUri() !== $path) {
             if (!$this->checkIfCorrectRemotePublicFileIsInPath($path)) {
                 // Remove any existing incorrect file in the location

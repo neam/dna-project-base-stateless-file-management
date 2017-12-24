@@ -11,10 +11,9 @@ use propel\models\FileInstance;
 /**
  * Holds methods relevant for converting files using the filestack api
  *
- * Class FilestackConvertibleFileTrait
  * @package neam\stateless_file_management
  */
-class FilestackConvertibleFileStorage implements FileStorage
+trait FilestackConvertibleFileStorageTrait
 {
 
     /**

@@ -8,9 +8,47 @@ use League\Flysystem\AwsS3v3\AwsS3Adapter;
 use League\Flysystem\FileNotFoundException;
 use League\Flysystem\Filesystem;
 use Exception;
+use propel\models\File;
+use propel\models\FileInstance;
 
 class PublicFilesS3FileStorage implements FileStorage
 {
+
+    /**
+     * @var \propel\models\File
+     */
+    protected $file;
+
+    /**
+     * @var \propel\models\FileInstance
+     */
+    protected $fileInstance;
+
+    static public function create(File $file, FileInstance $fileInstance)
+    {
+        return new PublicFilesS3FileStorage($file, $fileInstance);
+    }
+
+    public function __construct(File $file, FileInstance $fileInstance)
+    {
+        $this->file =& $file;
+        $this->fileInstance =& $fileInstance;
+    }
+
+    public function absoluteUrl()
+    {
+        return static::publicFilesS3Url($this->fileInstance->getUri());
+    }
+
+    public function fileContents()
+    {
+        $targetFileHandle = tmpfile();
+        if (!is_resource($targetFileHandle)) {
+            throw new Exception("Could not create a temporary file");
+        }
+        $url = $this->absoluteUrl();
+        return $this->file->downloadRemoteFileToStream($url, $targetFileHandle);
+    }
 
     protected $publicFilesS3Filesystem;
 
@@ -188,7 +226,8 @@ class PublicFilesS3FileStorage implements FileStorage
     protected function moveTheRemotePublicFileInstanceToPathIfNotAlreadyThere(
         \propel\models\FileInstance $fileInstance,
         $path
-    ) {
+    )
+    {
         \Operations::status(__METHOD__);
 
         /** @var \propel\models\File $this */

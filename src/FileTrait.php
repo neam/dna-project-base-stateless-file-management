@@ -4,6 +4,10 @@ namespace neam\stateless_file_management;
 
 use Exception;
 use Operations;
+use neam\stateless_file_management\file_storage_components\FileStorage;
+use neam\stateless_file_management\file_storage_components\FilestackFileStorage;
+use neam\stateless_file_management\file_storage_components\LocalFileStorage;
+use neam\stateless_file_management\file_storage_components\PublicFilesS3FileStorage;
 
 /**
  * Helper trait that encapsulates DNA project base file-handling logic
@@ -21,6 +25,8 @@ use Operations;
  *  - filestack-pending (implies that the binary is pending an asynchronous task to finish, after which point the instance will be converted into a 'filestack' instance)
  *  - filepicker (legacy filestack name, included only to serve filepicker-stored files until all have been converted to filestack-resources)
  *  - public-files-s3 (implies that the binary is stored in Amazon S3 in a publicly accessible bucket)
+ *
+ * You can easily implement app-specific storage components by creating a new FileStorage class and letting File override FOOO
  *
  * Class FileTrait
  */
@@ -56,6 +62,36 @@ trait FileTrait
         fclose($rfile);
         Operations::status("Downloaded file from $url");
         return $lfile;
+    }
+
+    /**
+     * Return the first available file storage for the current file
+     * @return FileStorage
+     * @throws Exception
+     * @throws \Propel\Runtime\Exception\PropelException
+     */
+    public function firstAvailableFileStorage(): FileStorage
+    {
+        /** @var \propel\models\File $this */
+        if (($fileInstance = $this->getFileInstanceRelatedByPublicFilesS3FileInstanceId()
+            ) && !empty($fileInstance->getUri())) {
+            return PublicFilesS3FileStorage::create($this, $fileInstance);
+        }
+        if (($fileInstance = $this->getFileInstanceRelatedByFilestackFileInstanceId()
+            ) && !empty($fileInstance->getUri())) {
+            return FilestackFileStorage::create($this, $fileInstance);
+        }
+        if (($fileInstance = $this->getFileInstanceRelatedByLocalFileInstanceId()
+            ) && !empty($fileInstance->getUri())) {
+            return LocalFileStorage::create($this, $fileInstance);
+        }
+        return null;
+    }
+
+    public function absoluteUrl()
+    {
+        $fileStorage = $this->firstAvailableFileStorage();
+        return $fileStorage->absoluteUrl();
     }
 
     /**
