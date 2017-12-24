@@ -309,6 +309,9 @@ class LocalFileStorage implements FileStorage
         // Update file instance to reflect the path to where it is currently found
         $localFileInstance->setUri($path);
 
+        // For integrity
+        $this->fileInstance = $localFileInstance;
+
         return $localFileInstance;
 
     }
