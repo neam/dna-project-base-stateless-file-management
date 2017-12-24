@@ -27,6 +27,7 @@
     "php": ">=5.6.5",
     "ext-iconv": "*",
     "propel/propel": "*@dev",
+    "filestack/filestack-php": ">=1.1.11",
     "league/flysystem": "~1.0.24",
     "league/flysystem-aws-s3-v3": "~1.0.13"
   },

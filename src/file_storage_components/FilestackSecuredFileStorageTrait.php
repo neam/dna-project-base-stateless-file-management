@@ -1,8 +1,8 @@
 <?php
 
-namespace neam\stateless_file_management;
+namespace neam\stateless_file_management\file_storage_components;
 
-trait FilestackSecuredFileTrait
+trait FilestackSecuredFileStorageTrait
 {
 
     static public function signFilestackUrl($filestackUrl, $admin = false, $cache = true)

@@ -1,6 +1,6 @@
 <?php
 
-namespace neam\stateless_file_management;
+namespace neam\stateless_file_management\file_storage_components;
 
 use Aws\S3\S3Client;
 use League\Flysystem\AdapterInterface;
@@ -8,9 +8,57 @@ use League\Flysystem\AwsS3v3\AwsS3Adapter;
 use League\Flysystem\FileNotFoundException;
 use League\Flysystem\Filesystem;
 use Exception;
+use propel\models\File;
+use propel\models\FileInstance;
 
-trait PublicFilesS3FileTrait
+class PublicFilesS3FileStorage implements FileStorage
 {
+
+    /**
+     * @var \propel\models\File
+     */
+    protected $file;
+
+    /**
+     * @var \propel\models\FileInstance
+     */
+    protected $fileInstance;
+
+    static public function create(File $file, FileInstance $fileInstance = null)
+    {
+        return new PublicFilesS3FileStorage($file, $fileInstance);
+    }
+
+    public function __construct(File $file, FileInstance $fileInstance = null)
+    {
+        $this->file =& $file;
+        if ($fileInstance === null) {
+            $fileInstance = $file->getFileInstanceRelatedByPublicFilesS3FileInstanceId();
+        }
+        $this->fileInstance =& $fileInstance;
+    }
+
+    public function absoluteUrl()
+    {
+        return "https:" . static::publicFilesS3Url($this->fileInstance->getUri());
+    }
+
+    public function fileContents()
+    {
+        $targetFileHandle = tmpfile();
+        if (!is_resource($targetFileHandle)) {
+            throw new Exception("Could not create a temporary file");
+        }
+        $url = $this->absoluteUrl();
+        return $this->file->downloadRemoteFileToStream($url, $targetFileHandle);
+    }
+
+    public function deliverFileContentsAsHttpResponse()
+    {
+        $url = $this->absoluteUrl();
+        header("Location: $url");
+        exit();
+    }
 
     protected $publicFilesS3Filesystem;
 
@@ -89,13 +137,13 @@ trait PublicFilesS3FileTrait
     {
         \Operations::status(__METHOD__);
 
-        /** @var \propel\models\File $this */
+        $file = $this->file;
 
         // Get the ensured remote public file instance with a binary copy of the file (binary copy is guaranteed to be found at this file instance's uri but not necessarily in the correct path)
         $remotePublicFileInstance = $this->getEnsuredRemotePublicFileInstance();
 
         // Move the remote public file instance to correct path if not already there
-        $correctPath = $this->getCorrectPath();
+        $correctPath = $file->getCorrectPath();
         $this->moveTheRemotePublicFileInstanceToPathIfNotAlreadyThere($remotePublicFileInstance, $correctPath);
 
         // Dummy check
@@ -113,13 +161,13 @@ trait PublicFilesS3FileTrait
         }
 
         // Set the correct path in file.path
-        if ($this->getPath() !== $correctPath) {
-            $this->setPath($correctPath);
+        if ($file->getPath() !== $correctPath) {
+            $file->setPath($correctPath);
         }
 
         // Save the file and file instance only first now when we know it is in place
         $remotePublicFileInstance->save();
-        $this->save();
+        $file->save();
 
     }
 
@@ -133,28 +181,30 @@ trait PublicFilesS3FileTrait
     {
         \Operations::status(__METHOD__);
 
-        /** @var \propel\models\File $this */
+        $file = $this->file;
         $publicFilesS3Filesystem = $this->getPublicFilesS3Filesystem();
 
-        $remotePublicFileInstance = $this->remotePublicFileInstance();
+        $remotePublicFileInstance = $file->remotePublicFileInstance();
 
         // Create a public remote file instance since none exists - but do not save it until we have put the binary in place...
         if (empty($remotePublicFileInstance)) {
             $remotePublicFileInstance = new \propel\models\FileInstance();
             $remotePublicFileInstance->setStorageComponentRef('public-files-s3');
-            $this->setFileInstanceRelatedByPublicFilesS3FileInstanceId($remotePublicFileInstance);
+            $file->setFileInstanceRelatedByPublicFilesS3FileInstanceId($remotePublicFileInstance);
         }
 
         // Upload the file
         $path = $remotePublicFileInstance->getUri();
         if (empty($path)) {
-            $path = $this->getCorrectPath();
+            $path = $file->getCorrectPath();
             $remotePublicFileInstance->setUri($path);
         }
         if (!$this->checkIfCorrectRemotePublicFileIsInPath($path)) {
 
+            $localFile = LocalFileStorage::create($file);
+
             // TODO: Ability to prevent the following method from attempting to download from the public files s3 instance
-            $localFileInstance = $this->getEnsuredLocalFileInstance();
+            $localFileInstance = $localFile->getEnsuredLocalFileInstance();
             if (empty($localFileInstance)) {
                 throw new Exception("No local file instance available to upload the file from");
             }
@@ -166,7 +216,7 @@ trait PublicFilesS3FileTrait
             }
 
             // Upload to specified path
-            $localFilesystem = $this->getLocalFilesystem();
+            $localFilesystem = $localFile->getLocalFilesystem();
             $publicFilesS3Filesystem->writeStream(
                 $path,
                 $localFilesystem->readStream($localFileInstance->getUri())
@@ -188,10 +238,11 @@ trait PublicFilesS3FileTrait
     protected function moveTheRemotePublicFileInstanceToPathIfNotAlreadyThere(
         \propel\models\FileInstance $fileInstance,
         $path
-    ) {
+    )
+    {
         \Operations::status(__METHOD__);
 
-        /** @var \propel\models\File $this */
+        $file = $this->file;
         if ($fileInstance->getUri() !== $path) {
             if (!$this->checkIfCorrectRemotePublicFileIsInPath($path)) {
                 // Remove any existing incorrect file in the location
@@ -223,17 +274,17 @@ trait PublicFilesS3FileTrait
             return false;
         }
 
-        /** @var \propel\models\File $this */
+        $file = $this->file;
 
-        if ($this->getSize() === null) {
+        if ($file->getSize() === null) {
             throw new Exception(
-                "A file already exists in the path ('{$path}') but we can't compare it to the expected file size since it is missing from the file record ('{$this->getId()}') metadata"
+                "A file already exists in the remote public path ('{$path}') but we can't compare it to the expected file size since it is missing from the file record ('{$file->getId()}') metadata"
             );
         }
 
         // Check if existing file has the correct size
         $size = $this->getPublicFilesS3Filesystem()->getSize($path);
-        if ($size !== $this->getSize()) {
+        if ($size !== $file->getSize()) {
             //\Operations::status("Wrong size (expected: {$this->getSize()}, actual: $size)");
             return false;
         }

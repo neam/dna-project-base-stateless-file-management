@@ -4,6 +4,10 @@ namespace neam\stateless_file_management;
 
 use Exception;
 use Operations;
+use neam\stateless_file_management\file_storage_components\FileStorage;
+use neam\stateless_file_management\file_storage_components\FilestackFileStorage;
+use neam\stateless_file_management\file_storage_components\LocalFileStorage;
+use neam\stateless_file_management\file_storage_components\PublicFilesS3FileStorage;
 
 /**
  * Helper trait that encapsulates DNA project base file-handling logic
@@ -15,23 +19,19 @@ use Operations;
  *  §4 File instance records tell us where binary copies of the file are stored
  *  §5 File instances should (if possible) store it's binary copy using the relative path provided by $file->getPath(), so that retrieval of the file's binary contents is straightforward and eventual public url's follow the official path/name supplied by $file->getPath()
  *
- * Current storage components handled by this trait:
+ * Current storage components handled:
  *  - local (implies that the binary is stored locally)
  *  - filestack (implies that the binary is stored at filestack)
  *  - filestack-pending (implies that the binary is pending an asynchronous task to finish, after which point the instance will be converted into a 'filestack' instance)
  *  - filepicker (legacy filestack name, included only to serve filepicker-stored files until all have been converted to filestack-resources)
  *  - public-files-s3 (implies that the binary is stored in Amazon S3 in a publicly accessible bucket)
  *
+ * You can easily implement app-specific storage components by creating a new FileStorage class and letting File override FOOO
+ *
  * Class FileTrait
  */
 trait FileTrait
 {
-
-    use LocalFileTrait;
-    use FilestackFileTrait;
-    use FilestackSecuredFileTrait;
-    use FilestackConvertibleFileTrait;
-    use PublicFilesS3FileTrait;
 
     /**
      * @propel
@@ -62,6 +62,36 @@ trait FileTrait
         fclose($rfile);
         Operations::status("Downloaded file from $url");
         return $lfile;
+    }
+
+    /**
+     * Return the first available file storage for the current file
+     * @return FileStorage
+     * @throws Exception
+     * @throws \Propel\Runtime\Exception\PropelException
+     */
+    public function firstAvailableFileStorage(): FileStorage
+    {
+        /** @var \propel\models\File $this */
+        if (($fileInstance = $this->getFileInstanceRelatedByPublicFilesS3FileInstanceId()
+            ) && !empty($fileInstance->getUri())) {
+            return PublicFilesS3FileStorage::create($this, $fileInstance);
+        }
+        if (($fileInstance = $this->getFileInstanceRelatedByFilestackFileInstanceId()
+            ) && !empty($fileInstance->getUri())) {
+            return FilestackFileStorage::create($this, $fileInstance);
+        }
+        if (($fileInstance = $this->getFileInstanceRelatedByLocalFileInstanceId()
+            ) && !empty($fileInstance->getUri())) {
+            return LocalFileStorage::create($this, $fileInstance);
+        }
+        return null;
+    }
+
+    public function absoluteUrl()
+    {
+        $fileStorage = $this->firstAvailableFileStorage();
+        return $fileStorage->absoluteUrl();
     }
 
     /**
@@ -113,9 +143,6 @@ trait FileTrait
         if ($fileInstance = $this->getFileInstanceRelatedByFilestackFileInstanceId()) {
             return $fileInstance;
         }
-        if ($fileInstance = $this->getFileInstanceRelatedByContextIoFileInstanceId()) {
-            return $fileInstance;
-        }
         if ($fileInstance = $this->getFileInstanceRelatedByPublicFilesS3FileInstanceId()) {
             return $fileInstance;
         }
@@ -135,38 +162,6 @@ trait FileTrait
             return $fileInstance;
         }
         return null;
-    }
-
-    /**
-     * @propel
-     * @throws Exception
-     * @throws \Propel\Runtime\Exception\PropelException
-     */
-    public function determineFileMetadata($localPath = null)
-    {
-        /** @var \propel\models\File $this */
-
-        if ($localPath === null) {
-            $localFileInstance = $this->getEnsuredLocalFileInstance();
-            $localPath = $localFileInstance->getUri();
-        }
-
-        if (empty($this->getMimetype())) {
-            $this->setMimetype($this->getLocalFilesystem()->getMimetype($localPath));
-        }
-        if ($this->getSize() === null) {
-            $this->setSize($this->getLocalFilesystem()->getSize($localPath));
-        }
-        if (empty($this->getFilename())) {
-            $absoluteLocalPath = $this->getLocalBasePath() . $localPath;
-            $filename = pathinfo($absoluteLocalPath, PATHINFO_FILENAME);
-            $this->setFilename($filename);
-        }
-        // TODO: hash/checksum
-        // $md5 = md5_file($absoluteLocalPath);
-        // Possible TODO: image width/height if image
-        // getimagesize($absoluteLocalPath)
-
     }
 
     /**

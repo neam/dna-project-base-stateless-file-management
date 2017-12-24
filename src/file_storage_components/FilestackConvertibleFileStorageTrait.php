@@ -1,6 +1,6 @@
 <?php
 
-namespace neam\stateless_file_management;
+namespace neam\stateless_file_management\file_storage_components;
 
 use AppJson;
 use GuzzleHttp;
@@ -11,10 +11,9 @@ use propel\models\FileInstance;
 /**
  * Holds methods relevant for converting files using the filestack api
  *
- * Class FilestackConvertibleFileTrait
  * @package neam\stateless_file_management
  */
-trait FilestackConvertibleFileTrait
+trait FilestackConvertibleFileStorageTrait
 {
 
     /**

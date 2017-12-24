@@ -1,6 +1,6 @@
 <?php
 use Codeception\Util\Stub;
-use neam\stateless_file_management\File;
+use neam\stateless_file_management\file_storage_components\FilestackFileStorage;
 
 class FilestackIntegrationLogicTest extends \Codeception\TestCase\Test
 {
@@ -38,7 +38,7 @@ class FilestackIntegrationLogicTest extends \Codeception\TestCase\Test
     public function testExtractHandleFromFilestackUrl($filestackUrl, $expectedHandle)
     {
 
-        $handle = File::extractHandleFromFilestackUrl($filestackUrl);
+        $handle = FilestackFileStorage::extractHandleFromFilestackUrl($filestackUrl);
         $this->assertEquals($expectedHandle, $handle, 'filestack url handle extraction behaves as expected');
 
     }
