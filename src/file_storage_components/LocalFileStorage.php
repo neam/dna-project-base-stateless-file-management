@@ -70,7 +70,7 @@ class LocalFileStorage implements FileStorage
      * @propel
      * @return Filesystem
      */
-    protected function getLocalFilesystem()
+    public function getLocalFilesystem()
     {
         if (empty($this->localFilesystem)) {
             $this->localFilesystem = new Filesystem(new Local($this->getLocalBasePath()));
@@ -265,7 +265,7 @@ class LocalFileStorage implements FileStorage
      * @throws Exception
      * @throws \Propel\Runtime\Exception\PropelException
      */
-    protected function getEnsuredLocalFileInstance()
+    public function getEnsuredLocalFileInstance()
     {
         \Operations::status(__METHOD__);
 
@@ -368,7 +368,7 @@ class LocalFileStorage implements FileStorage
 
         if ($file->getSize() === null) {
             throw new Exception(
-                "A file already exists in the path ('{$path}') but we can't compare it to the expected file size since it is missing from the file record ('{$file->getId()}') metadata"
+                "A file already exists in the local path ('{$path}') but we can't compare it to the expected file size since it is missing from the file record ('{$file->getId()}') metadata"
             );
         }
 
