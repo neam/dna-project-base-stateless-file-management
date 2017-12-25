@@ -107,7 +107,7 @@ trait FileTrait
             throw new Exception("File's id not set - can't calculate the correct path");
         }
         $filename = \neam\Sanitize::filename($this->getFilename());
-        return $this->getId() . DIRECTORY_SEPARATOR . $filename;
+        return $this->getId() . DIRECTORY_SEPARATOR . trim($filename);
     }
 
     public function ensureCorrectPath()
