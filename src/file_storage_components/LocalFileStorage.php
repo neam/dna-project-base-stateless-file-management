@@ -338,7 +338,7 @@ class LocalFileStorage implements FileStorage
 
         $file = $this->file;
         if ($fileInstance->getUri() !== $path) {
-            if (!$this->checkIfCorrectRemotePublicFileIsInPath($path)) {
+            if (!$this->checkIfCorrectLocalFileIsInPath($path)) {
                 // Remove any existing incorrect file in the location
                 try {
                     $this->getLocalFilesystem()->delete($path);
