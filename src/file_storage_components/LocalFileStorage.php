@@ -131,7 +131,8 @@ class LocalFileStorage implements FileStorage
         // Detects the mime type primarily by file contents
         $mimeType = \MimeType::guessMimeType($inputFilePath);
 
-        // TODO: Store guess in order to prevent repeated downloads of the file only for mimetype-guessing
+        // Set guess as attribute in order to prevent repeated downloads of the file only for mimetype-guessing (requires saving of the file record)
+        $this->file->setLocallyGuessedMimetype($mimeType);
 
         return $mimeType;
 

@@ -104,17 +104,14 @@ class FilestackFileStorage implements FileStorage
     )
     {
 
-        $handle = static::extractHandleFromFilestackUrl($filestackUrl);
-        $client = new GuzzleHttp\Client();
-        $filestackMetadataUrl = 'https://www.filestackapi.com/api/file/' . $handle . '/metadata';
-        $requestUrl = File::signFilestackUrl($filestackMetadataUrl);
-        $response = $client->get($requestUrl);
+        $metadata = static::getFilestackClient()->getMetaData($filestackUrl);
 
         $data = new \stdClass();
-        $data->fpfile = AppJson::decode($response->getBody());
-        $data->fpkey = FILESTACK_API_KEY;
+        $data->metadata = $metadata;
+        $data->filestackApiKey = FILESTACK_API_KEY;
 
-        $fileInstance->setDataJson(json_encode($data));
+        $fileInstance->setDataJson(AppJson::encode($data));
+        $fileInstance->setDataType("WrappedFilestackPhpSdkGetMetadataResponse");
 
     }
 
@@ -159,31 +156,38 @@ class FilestackFileStorage implements FileStorage
 
         $data = AppJson::decode($fileInstance->getDataJson());
 
-        $file->setSize($data->fpfile->size);
-        $file->setMimetype($data->fpfile->mimetype);
-        $file->setFilename($data->fpfile->filename);
-        $file->setOriginalFilename($data->fpfile->filename);
+        if ($fileInstance->getDataType() === null) {
+            $file->setSize($data->fpfile->size);
+            $file->setMimetype($data->fpfile->mimetype);
+            $file->setFilename($data->fpfile->filename);
+        } elseif ($fileInstance->getDataType() === "WrappedFilestackPhpSdkGetMetadataResponse") {
+            $file->setSize($data->metadata->size);
+            $file->setMimetype($data->metadata->mimetype);
+            $file->setFilename($data->metadata->filename);
+        } else {
+            throw new Exception("Unhandled filestack file instance data type: '{$fileInstance->getDataType()}'");
+        }
 
     }
 
     /**
      * @var FilestackClient
      */
-    protected $filestackClient;
+    static protected $filestackClient;
 
     /**
      * @return FilestackClient
      */
-    public function getFilestackClient()
+    static public function getFilestackClient()
     {
 
-        if (empty($this->filestackClient)) {
+        if (empty(static::$filestackClient)) {
 
             $security = new FilestackSecurity(FILESTACK_API_SECRET);
-            $this->filestackClient = new FilestackClient(FILESTACK_API_KEY, $security);
+            static::$filestackClient = new FilestackClient(FILESTACK_API_KEY, $security);
 
         }
-        return $this->filestackClient;
+        return static::$filestackClient;
 
     }
 
@@ -203,7 +207,7 @@ class FilestackFileStorage implements FileStorage
         // Get the ensured remote public file instance with a binary copy of the file (binary copy is guaranteed to be found at this file instance's uri but not necessarily in the correct path)
         $filestackFileInstance = $this->getEnsuredFilestackFileInstance();
 
-
+        // Not checking if the remote filestack file instance has contents in the  correct path since filestack records does not track paths, only file handles
         /*
 
         // Move the remote public file instance to correct path if not already there
@@ -212,8 +216,8 @@ class FilestackFileStorage implements FileStorage
 
         // Dummy check
         if (!$this->checkIfCorrectFilestackFileIsInPath($correctPath)) {
-            if ($this->getFilestackClient()->has($correctPath)) {
-                $metadata = $this->getFilestackClient()->getMetadata($correctPath);
+            if (static::getFilestackClient()->has($correctPath)) {
+                $metadata = static::getFilestackClient()->getMetadata($correctPath);
             } else {
                 $metadata = ["not-in-path"];
             }
@@ -248,7 +252,7 @@ class FilestackFileStorage implements FileStorage
         \Operations::status(__METHOD__);
 
         $file = $this->file;
-        $filestackClient = $this->getFilestackClient();
+        $filestackClient = static::getFilestackClient();
 
         // Create a filestack file instance since none exists - but do not save it until we have put the binary in place...
         $filestackFileInstance = $file->getFileInstanceRelatedByFilestackFileInstanceId();
@@ -272,8 +276,6 @@ class FilestackFileStorage implements FileStorage
 
             // Upload/overwrite the file
             $filepath = $localFile->getAbsoluteLocalPath();
-
-
             if (empty($filestackUrl)) {
                 $options = [];
                 $options['mimetype'] = $file->getMimetype();
@@ -289,6 +291,13 @@ class FilestackFileStorage implements FileStorage
 
             // Update file instance to reflect the path to where it is currently found
             $filestackFileInstance->setUri($filestackUrl);
+
+            // Set metadata properly
+            static::decorateFileInstanceWithFilestackMetadataByFilestackUrl($filestackFileInstance, $filestackUrl);
+            static::setFileMetadataFromFilestackFileInstanceMetadata($file, $filestackFileInstance);
+
+            // Set locally guessed mimetype - taking advantage of the fact that we have the binary available locally makes this a fast operation
+            $localFile->ensuredLocallyGuessedMimetype();
 
         }
 
@@ -312,10 +321,10 @@ class FilestackFileStorage implements FileStorage
             if (!$this->checkIfCorrectFilestackFileIsInPath($path)) {
                 // Remove any existing incorrect file in the location
                 try {
-                    $this->getFilestackClient()->delete($path);
+                    static::getFilestackClient()->delete($path);
                 } catch (FileNotFoundException $e) {
                 }
-                $this->getFilestackClient()->rename($fileInstance->getUri(), $path);
+                static::getFilestackClient()->rename($fileInstance->getUri(), $path);
                 $fileInstance->setUri($path);
             }
         }
@@ -335,7 +344,7 @@ class FilestackFileStorage implements FileStorage
         try {
 
             // Check if remote file exists
-            $metadata = $this->getFilestackClient()->getMetaData($filestackUrl);
+            $metadata = static::getFilestackClient()->getMetaData($filestackUrl);
 
             $file = $this->file;
 
