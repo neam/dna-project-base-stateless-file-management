@@ -339,7 +339,7 @@ class FilestackFileStorage implements FileStorage
     protected function checkIfCorrectFilestackFileIsAtFilestackUrl($filestackUrl)
     {
         \Operations::status(__METHOD__);
-        \Operations::status($filestackUrl);
+        \Operations::status('$filestackUrl: ' . $filestackUrl);
 
         try {
 
