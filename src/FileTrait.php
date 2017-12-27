@@ -64,30 +64,6 @@ trait FileTrait
         return $lfile;
     }
 
-    /**
-     * Return the first available file storage for the current file
-     * @return FileStorage
-     * @throws Exception
-     * @throws \Propel\Runtime\Exception\PropelException
-     */
-    public function firstAvailableFileStorage(): FileStorage
-    {
-        /** @var \propel\models\File $this */
-        if (($fileInstance = $this->getFileInstanceRelatedByPublicFilesS3FileInstanceId()
-            ) && !empty($fileInstance->getUri())) {
-            return PublicFilesS3FileStorage::create($this, $fileInstance);
-        }
-        if (($fileInstance = $this->getFileInstanceRelatedByFilestackFileInstanceId()
-            ) && !empty($fileInstance->getUri())) {
-            return FilestackFileStorage::create($this, $fileInstance);
-        }
-        if (($fileInstance = $this->getFileInstanceRelatedByLocalFileInstanceId()
-            ) && !empty($fileInstance->getUri())) {
-            return LocalFileStorage::create($this, $fileInstance);
-        }
-        return null;
-    }
-
     public function absoluteUrl()
     {
         $fileStorage = $this->firstAvailableFileStorage();
@@ -132,34 +108,61 @@ trait FileTrait
     }
 
     /**
-     * Should return first best remote file instance where it is expected to find
-     * a binary copy of the file when there is no local file available
-     * @propel
-     * @return mixed|null|\propel\models\FileInstance
+     * Return the first available file storage for the current file where it is expected to find
+     * a binary copy of the file
+     * @return FileStorage
+     * @throws \Propel\Runtime\Exception\PropelException
      */
-    public function remoteFileInstance()
+    public function firstAvailableFileStorage(): FileStorage
     {
         /** @var \propel\models\File $this */
-        if ($fileInstance = $this->getFileInstanceRelatedByFilestackFileInstanceId()) {
-            return $fileInstance;
+        if (($fileInstance = $this->getFileInstanceRelatedByPublicFilesS3FileInstanceId()
+            ) && !empty($fileInstance->getUri())) {
+            return PublicFilesS3FileStorage::create($this, $fileInstance);
         }
-        if ($fileInstance = $this->getFileInstanceRelatedByPublicFilesS3FileInstanceId()) {
-            return $fileInstance;
+        if (($fileInstance = $this->getFileInstanceRelatedByFilestackFileInstanceId()
+            ) && !empty($fileInstance->getUri())) {
+            return FilestackFileStorage::create($this, $fileInstance);
+        }
+        if (($fileInstance = $this->getFileInstanceRelatedByLocalFileInstanceId()
+            ) && !empty($fileInstance->getUri())) {
+            return LocalFileStorage::create($this, $fileInstance);
         }
         return null;
     }
 
     /**
-     * Should return the first best remote public file instance where it is expected to find
-     * a public binary copy of the file
-     * @propel
-     * @return mixed|null|\propel\models\FileInstance
+     * Return first best remote file storage where it is expected to find
+     * a binary copy of the file when there is no local file available
+     * @return FilestackFileStorage|PublicFilesS3FileStorage|null
+     * @throws \Propel\Runtime\Exception\PropelException
      */
-    public function remotePublicFileInstance()
+    public function firstAvailableRemoteFileStorage()
     {
         /** @var \propel\models\File $this */
-        if ($fileInstance = $this->getFileInstanceRelatedByPublicFilesS3FileInstanceId()) {
-            return $fileInstance;
+        if (($fileInstance = $this->getFileInstanceRelatedByFilestackFileInstanceId()
+            ) && !empty($fileInstance->getUri())) {
+            return FilestackFileStorage::create($this, $fileInstance);
+        }
+        if (($fileInstance = $this->getFileInstanceRelatedByPublicFilesS3FileInstanceId()
+            ) && !empty($fileInstance->getUri())) {
+            return PublicFilesS3FileStorage::create($this, $fileInstance);
+        }
+        return null;
+    }
+
+    /**
+     * Return the first best remote public file storage where it is expected to find
+     * a public binary copy of the file
+     * @return PublicFilesS3FileStorage|null
+     * @throws \Propel\Runtime\Exception\PropelException
+     */
+    public function firstAvailableRemotePublicFileStorage()
+    {
+        /** @var \propel\models\File $this */
+        if (($fileInstance = $this->getFileInstanceRelatedByPublicFilesS3FileInstanceId()
+            ) && !empty($fileInstance->getUri())) {
+            return PublicFilesS3FileStorage::create($this, $fileInstance);
         }
         return null;
     }
