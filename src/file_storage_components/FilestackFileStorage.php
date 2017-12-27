@@ -17,16 +17,7 @@ class FilestackFileStorage implements FileStorage
 
     use FilestackSecuredFileStorageTrait;
     use FilestackConvertibleFileStorageTrait;
-
-    /**
-     * @var \propel\models\File
-     */
-    protected $file;
-
-    /**
-     * @var \propel\models\FileInstance
-     */
-    protected $fileInstance;
+    use FileStorageTrait;
 
     static public function create(File $file, FileInstance $fileInstance = null)
     {

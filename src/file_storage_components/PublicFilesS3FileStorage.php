@@ -14,15 +14,7 @@ use propel\models\FileInstance;
 class PublicFilesS3FileStorage implements FileStorage
 {
 
-    /**
-     * @var \propel\models\File
-     */
-    protected $file;
-
-    /**
-     * @var \propel\models\FileInstance
-     */
-    protected $fileInstance;
+    use FileStorageTrait;
 
     static public function create(File $file, FileInstance $fileInstance = null)
     {
