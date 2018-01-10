@@ -39,7 +39,9 @@ class LocalFileStorage implements FileStorage
         $file = $this->file;
         $path = $file->ensureCorrectPath();
         if (!$this->getLocalFilesystem()->has($path)) {
-            throw new Exception("File contents can not be returned since there is no file at the expected path in the local file system");
+            $errorMessage = "File contents can not be returned since there is no file at the expected path in the local file system";
+            \Operations::status("Exception: " . $errorMessage);
+            throw new Exception($errorMessage);
         }
         return $this->getLocalFilesystem()->readStream($path);
     }
@@ -93,7 +95,9 @@ class LocalFileStorage implements FileStorage
             $this->ensureCorrectLocalFile();
         }
         if (empty($file->getPath())) {
-            throw new Exception("File's path not set");
+            $errorMessage = "File's path not set";
+            \Operations::status("Exception: " . $errorMessage);
+            throw new Exception($errorMessage);
         }
         return $file->getPath();
     }
@@ -175,7 +179,9 @@ class LocalFileStorage implements FileStorage
         $file->setSize(null);
         $this->determineFileMetadata($path);
         if (!$this->checkIfCorrectLocalFileIsInPath($path)) {
-            throw new Exception("Put file contents failed");
+            $errorMessage = "Put file contents failed";
+            \Operations::status("Exception: " . $errorMessage);
+            throw new Exception($errorMessage);
         }
         // Store local file instance
         $localFileInstance = $this->createLocalFileInstanceIfNecessary();
@@ -218,10 +224,10 @@ class LocalFileStorage implements FileStorage
                 $metadata["timestamp_YmdHis"] = DateTime::createFromFormat("U", $metadata["timestamp"])->format("Y-m-d H:i:s");
             }
 
-            throw new Exception(
-                "ensureCorrectLocalFile() failure - local file instance's (id '{$localFileInstance->getId()}', storage component ref '{$localFileInstance->getStorageComponentRef()}') file (id '{$file->getId()}', with expected size {$file->getSize()}) is not in path ('$correctPath') after an attempted move to correct that. Currently in path: "
-                . print_r($metadata, true)
-            );
+            $errorMessage = "ensureCorrectLocalFile() failure - local file instance's (id '{$localFileInstance->getId()}', storage component ref '{$localFileInstance->getStorageComponentRef()}') file (id '{$file->getId()}', with expected size {$file->getSize()}) is not in path ('$correctPath') after an attempted move to correct that. Currently in path: "
+                . print_r($metadata, true);
+            \Operations::status("Exception: " . $errorMessage);
+            throw new Exception($errorMessage);
         }
 
         // Set the correct path in file.path
@@ -276,7 +282,9 @@ class LocalFileStorage implements FileStorage
             $fileStorage = $file->firstAvailableFileStorage();
 
             if ($fileStorage instanceof LocalFileStorage) {
-                throw new Exception("The first available file storage can't be local file storage when we are ensuring local files");
+                $errorMessage = "The first available file storage can't be local file storage when we are ensuring local files";
+                \Operations::status("Exception: " . $errorMessage);
+                throw new Exception($errorMessage);
             }
 
             \Operations::status("First available file storage: " . get_class($fileStorage));
@@ -321,11 +329,15 @@ class LocalFileStorage implements FileStorage
         \Operations::status(__METHOD__);
 
         if (empty($path)) {
-            throw new Exception("Supplied path to move file instance with id '{$fileInstance->getId()}' to is empty");
+            $errorMessage = "Supplied path to move file instance with id '{$fileInstance->getId()}' to is empty";
+            \Operations::status("Exception: " . $errorMessage);
+            throw new Exception($errorMessage);
         }
 
         if (empty($fileInstance->getUri())) {
-            throw new Exception("File instance with id '{$fileInstance->getId()}' has an empty uri/path");
+            $errorMessage = "File instance with id '{$fileInstance->getId()}' has an empty uri/path";
+            \Operations::status("Exception: " . $errorMessage);
+            throw new Exception($errorMessage);
         }
 
         $file = $this->file;
@@ -363,15 +375,15 @@ class LocalFileStorage implements FileStorage
         $file = $this->file;
 
         if ($file->getSize() === null) {
-            throw new Exception(
-                "A file already exists in the local path ('{$path}') but we can't compare it to the expected file size since it is missing from the file record ('{$file->getId()}') metadata"
-            );
+            $errorMessage = "A file already exists in the local path ('{$path}') but we can't compare it to the expected file size since it is missing from the file record ('{$file->getId()}') metadata";
+            \Operations::status("Exception: " . $errorMessage);
+            throw new Exception($errorMessage);
         }
 
         // Check if existing file has the correct size
         $size = $this->getLocalFilesystem()->getSize($path);
         if ($size !== $file->getSize()) {
-            //\Operations::status("Wrong size (expected: {$this->getSize()}, actual: $size)");
+            \Operations::status("Wrong size (expected: {$file->getSize()}, actual: $size) - file record ('{$file->getId()}') - local path ('{$path}')");
             return false;
         }
 

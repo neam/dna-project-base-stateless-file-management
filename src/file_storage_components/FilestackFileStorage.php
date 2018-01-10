@@ -262,7 +262,9 @@ class FilestackFileStorage implements FileStorage
             // TODO: Ability to prevent the following method from attempting to download from the filestack instance (in case the wrong file is currently uploaded to the existing filestack url)
             $localFileInstance = $localFile->getEnsuredLocalFileInstance();
             if (empty($localFileInstance)) {
-                throw new Exception("No local file instance available to upload the file from");
+                $errorMessage = "No local file instance available to upload the file from";
+                \Operations::status("Exception: " . $errorMessage);
+                throw new Exception($errorMessage);
             }
 
             // Upload/overwrite the file
@@ -340,15 +342,15 @@ class FilestackFileStorage implements FileStorage
             $file = $this->file;
 
             if ($file->getSize() === null) {
-                throw new Exception(
-                    "A file already exists in the remote filestack url ('{$filestackUrl}') but we can't compare it to the expected file size since it is missing from the file record ('{$file->getId()}') metadata"
-                );
+                $errorMessage = "A file already exists in the remote filestack url ('{$filestackUrl}') but we can't compare it to the expected file size since it is missing from the file record ('{$file->getId()}') metadata";
+                \Operations::status("Exception: " . $errorMessage);
+                throw new Exception($errorMessage);
             }
 
             // Check if existing file has the correct size
             $size = $metadata["size"];
             if ($size !== $file->getSize()) {
-                //\Operations::status("Wrong size (expected: {$this->getSize()}, actual: $size)");
+                \Operations::status("Wrong size (expected: {$file->getSize()}, actual: $size) - file record ('{$file->getId()}') - remote filestack url ('{$filestackUrl}')");
                 return false;
             }
 
