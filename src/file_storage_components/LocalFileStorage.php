@@ -165,6 +165,9 @@ class LocalFileStorage implements FileStorage
         if (empty($file->getMimetype())) {
             $file->setMimetype($this->getLocalFilesystem()->getMimetype($localPath));
         }
+        if (empty($file->getLocallyGuessedMimetype())) {
+            $file->setLocallyGuessedMimetype($this->guessMimetypeByAbsoluteLocalPath($absoluteLocalPath));
+        }
         if ($file->getSize() === null) {
             $file->setSize($this->getLocalFilesystem()->getSize($localPath));
         }
