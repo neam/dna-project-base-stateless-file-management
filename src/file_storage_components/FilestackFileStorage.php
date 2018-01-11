@@ -267,13 +267,16 @@ class FilestackFileStorage implements FileStorage
                 throw new Exception($errorMessage);
             }
 
+            // Set locally guessed mimetype - taking advantage of the fact that we have the binary available locally makes this a fast operation
+            $mimetype = $localFile->ensuredLocallyGuessedMimetype();
+
             // Upload/overwrite the file
             $filepath = $localFile->getAbsoluteLocalPath();
             if (empty($filestackUrl)) {
                 $options = [];
-                $options['mimetype'] = $file->getMimetype();
+                $options['mimetype'] = $mimetype;
                 /** @var Filelink $filelink */
-                $filelink = $filestackClient->upload($filepath);
+                $filelink = $filestackClient->upload($filepath, $options);
             } else {
                 $handle = static::extractHandleFromFilestackUrl($filestackUrl);
                 /** @var Filelink $filelink */
@@ -288,9 +291,6 @@ class FilestackFileStorage implements FileStorage
             // Set metadata properly
             static::decorateFileInstanceWithFilestackMetadataByFilestackUrl($filestackFileInstance, $filestackUrl);
             static::setFileMetadataFromFilestackFileInstanceMetadata($file, $filestackFileInstance);
-
-            // Set locally guessed mimetype - taking advantage of the fact that we have the binary available locally makes this a fast operation
-            $localFile->ensuredLocallyGuessedMimetype();
 
         }
 
