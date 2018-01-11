@@ -175,8 +175,12 @@ class LocalFileStorage implements FileStorage
             $filename = pathinfo($absoluteLocalPath, PATHINFO_FILENAME);
             $file->setFilename($filename);
         }
-        // TODO: hash/checksum
-        // $md5 = md5_file($absoluteLocalPath);
+        if (empty($file->getContentSha1Hash())) {
+            $sha1 = sha1_file($absoluteLocalPath);
+            if ($sha1 !== false) {
+                $file->setContentSha1Hash($sha1);
+            }
+        }
         // Possible TODO: image width/height if image
         // getimagesize($absoluteLocalPath)
 
