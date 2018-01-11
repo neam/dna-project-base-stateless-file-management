@@ -97,6 +97,16 @@ class FilestackFileStorage implements FileStorage
 
         $metadata = static::getFilestackClient()->getMetaData($filestackUrl);
 
+        static::decorateFileInstanceWithFilestackMetadata($fileInstance, $metadata);
+
+    }
+
+    static public function decorateFileInstanceWithFilestackMetadata(
+        \propel\models\FileInstance $fileInstance,
+        $metadata
+    )
+    {
+
         $data = new \stdClass();
         $data->metadata = $metadata;
         $data->filestackApiKey = FILESTACK_API_KEY;
@@ -148,13 +158,25 @@ class FilestackFileStorage implements FileStorage
         $data = AppJson::decode($fileInstance->getDataJson());
 
         if ($fileInstance->getDataType() === null) {
-            $file->setSize($data->fpfile->size);
-            $file->setMimetype($data->fpfile->mimetype);
-            $file->setFilename($data->fpfile->filename);
+            if ($file->getSize() === null) {
+                $file->setSize($data->fpfile->size);
+            }
+            if ($file->getMimetype() === null) {
+                $file->setMimetype($data->fpfile->mimetype);
+            }
+            if ($file->getFilename() === null) {
+                $file->setFilename($data->fpfile->filename);
+            }
         } elseif ($fileInstance->getDataType() === "WrappedFilestackPhpSdkGetMetadataResponse") {
-            $file->setSize($data->metadata->size);
-            $file->setMimetype($data->metadata->mimetype);
-            $file->setFilename($data->metadata->filename);
+            if ($file->getSize() === null) {
+                $file->setSize($data->metadata->size);
+            }
+            if ($file->getMimetype() === null) {
+                $file->setMimetype($data->metadata->mimetype);
+            }
+            if ($file->getFilename() === null) {
+                $file->setFilename($data->metadata->filename);
+            }
         } else {
             throw new Exception("Unhandled filestack file instance data type: '{$fileInstance->getDataType()}'");
         }
@@ -267,29 +289,33 @@ class FilestackFileStorage implements FileStorage
                 throw new Exception($errorMessage);
             }
 
+            $absoluteLocalPath = $localFile->getAbsoluteLocalPath();
+
             // Set locally guessed mimetype - taking advantage of the fact that we have the binary available locally makes this a fast operation
-            $mimetype = $localFile->ensuredLocallyGuessedMimetype();
+            $mimetype = $localFile->guessMimetypeByAbsoluteLocalPath($absoluteLocalPath);
 
             // Upload/overwrite the file
-            $filepath = $localFile->getAbsoluteLocalPath();
+            $filelink = null;
             if (empty($filestackUrl)) {
                 $options = [];
                 $options['mimetype'] = $mimetype;
                 /** @var Filelink $filelink */
-                $filelink = $filestackClient->upload($filepath, $options);
+                $filelink = $filestackClient->upload($absoluteLocalPath, $options);
             } else {
                 $handle = static::extractHandleFromFilestackUrl($filestackUrl);
                 /** @var Filelink $filelink */
-                $filelink = $filestackClient->overwrite($filepath, $handle);
+                $filelink = $filestackClient->overwrite($absoluteLocalPath, $handle);
+                // TODO: Find a way to overwrite the metadata here in case it is different from the current metadata, possibly via delete + upload
             }
+            $metadata = $filelink->getMetaData();
 
             $filestackUrl = $filelink->url();
 
             // Update file instance to reflect the path to where it is currently found
             $filestackFileInstance->setUri($filestackUrl);
 
-            // Set metadata properly
-            static::decorateFileInstanceWithFilestackMetadataByFilestackUrl($filestackFileInstance, $filestackUrl);
+            // Set metadata properly (does not override existing file metadata records, of which many should have been set already during the ensuring of a local file instance above)
+            static::decorateFileInstanceWithFilestackMetadata($filestackFileInstance, $metadata);
             static::setFileMetadataFromFilestackFileInstanceMetadata($file, $filestackFileInstance);
 
         }

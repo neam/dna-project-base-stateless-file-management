@@ -122,10 +122,10 @@ class LocalFileStorage implements FileStorage
     {
 
         // Actually downloads the file
-        $inputFilePath = $this->getAbsoluteLocalPath();
+        $absoluteLocalPath = $this->getAbsoluteLocalPath();
 
         // Detects the mime type primarily by file contents
-        $mimeType = \MimeType::guessMimeType($inputFilePath);
+        $mimeType = $this->guessMimetypeByAbsoluteLocalPath($absoluteLocalPath);
 
         // Set guess as attribute in order to prevent repeated downloads of the file only for mimetype-guessing (requires saving of the file record)
         $this->file->setLocallyGuessedMimetype($mimeType);
@@ -134,19 +134,33 @@ class LocalFileStorage implements FileStorage
 
     }
 
+    public function guessMimetypeByAbsoluteLocalPath($absoluteLocalPath)
+    {
+
+        // Detects the mime type primarily by file contents
+        $mimeType = \MimeType::guessMimeType($absoluteLocalPath);
+
+        return $mimeType;
+
+    }
+
     /**
-     * @param null $localPath
      * @throws Exception
      * @throws \Propel\Runtime\Exception\PropelException
      */
-    public function determineFileMetadata($localPath = null)
+    public function determineFileMetadata()
     {
+        $localFileInstance = $this->getEnsuredLocalFileInstance();
+        $localPath = $localFileInstance->getUri();
+        $this->setFileMetadataBasedOnFileInLocalPath($localPath);
+    }
+
+    public function setFileMetadataBasedOnFileInLocalPath($localPath)
+    {
+
         $file = $this->file;
 
-        if ($localPath === null) {
-            $localFileInstance = $this->getEnsuredLocalFileInstance();
-            $localPath = $localFileInstance->getUri();
-        }
+        $absoluteLocalPath = $this->getLocalBasePath() . $localPath;
 
         if (empty($file->getMimetype())) {
             $file->setMimetype($this->getLocalFilesystem()->getMimetype($localPath));
@@ -155,7 +169,6 @@ class LocalFileStorage implements FileStorage
             $file->setSize($this->getLocalFilesystem()->getSize($localPath));
         }
         if (empty($file->getFilename())) {
-            $absoluteLocalPath = $this->getLocalBasePath() . $localPath;
             $filename = pathinfo($absoluteLocalPath, PATHINFO_FILENAME);
             $file->setFilename($filename);
         }
@@ -305,6 +318,10 @@ class LocalFileStorage implements FileStorage
                 $this->getLocalFilesystem()->write($path, $fileContents);
             }
 
+            // Set/refresh metadata - taking advantage of the fact that we have the binary available locally makes this a fast operation
+            // Also sets file size attribute if null so that we do not have to download this file contents again just because of missing file size
+            $this->setFileMetadataBasedOnFileInLocalPath($path);
+
         }
 
         // Update file instance to reflect the path to where it is currently found
@@ -362,17 +379,16 @@ class LocalFileStorage implements FileStorage
      */
     protected function checkIfCorrectLocalFileIsInPath($path)
     {
-        \Operations::status(__METHOD__);
-        \Operations::status($path);
+        \Operations::status(__METHOD__ . " - " . $path);
+
+        $file = $this->file;
 
         // Check if file exists
         $exists = $this->getLocalFilesystem()->has($path);
         if (!$exists) {
-            //\Operations::status("Does not exist");
+            \Operations::status("Does not exist - file record ('{$file->getId()}') - local path ('{$path}')");
             return false;
         }
-
-        $file = $this->file;
 
         if ($file->getSize() === null) {
             $errorMessage = "A file already exists in the local path ('{$path}') but we can't compare it to the expected file size since it is missing from the file record ('{$file->getId()}') metadata";
