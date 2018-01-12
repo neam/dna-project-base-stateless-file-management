@@ -302,8 +302,9 @@ class LocalFileStorage implements FileStorage
         // Only download if we can't determine if the correct file is already in place, or if we can determine it and we see that the wrong content is downloaded
         if ($file->getSize() === null || !$this->checkIfCorrectLocalFileIsInPath($path)) {
 
-            $fileStorage = $file->firstAvailableFileStorage();
+            $fileStorage = $file->firstAvailableRemoteFileStorage();
 
+            // Dummy check
             if ($fileStorage instanceof LocalFileStorage) {
                 $errorMessage = "The first available file storage can't be local file storage when we are ensuring local files";
                 \Operations::status("Exception: " . $errorMessage);
