@@ -282,14 +282,14 @@ class FilestackFileStorage implements FileStorage
             $localFile = LocalFileStorage::create($file);
 
             // TODO: Ability to prevent the following method from attempting to download from the filestack instance (in case the wrong file is currently uploaded to the existing filestack url)
-            $localFileInstance = $localFile->getEnsuredLocalFileInstance();
+            $localFileInstance = $localFile->ensureCorrectLocalFile()->getFileInstance();
             if (empty($localFileInstance)) {
                 $errorMessage = "No local file instance available to upload the file from";
                 \Operations::status("Exception: " . $errorMessage);
                 throw new Exception($errorMessage);
             }
 
-            $absoluteLocalPath = $localFile->getAbsoluteLocalPath();
+            $absoluteLocalPath = $localFile->getAbsoluteLocalPath($ensure = false);
 
             // Set locally guessed mimetype - taking advantage of the fact that we have the binary available locally makes this a fast operation
             $mimetype = $localFile->guessMimetypeByAbsoluteLocalPath($absoluteLocalPath);
@@ -301,10 +301,12 @@ class FilestackFileStorage implements FileStorage
                 $options['mimetype'] = $mimetype;
                 /** @var Filelink $filelink */
                 $filelink = $filestackClient->upload($absoluteLocalPath, $options);
+                \Operations::status("Uploaded file ('{$file->getId()}') of mimetype '$mimetype' to filestack handle {$filelink->handle}");
             } else {
                 $handle = static::extractHandleFromFilestackUrl($filestackUrl);
                 /** @var Filelink $filelink */
                 $filelink = $filestackClient->overwrite($absoluteLocalPath, $handle);
+                \Operations::status("Overwrite file ('{$file->getId()}') of mimetype '$mimetype' over filestack handle {$filelink->handle} of metadata '{TODO insert actual mimetype here}'");
                 // TODO: Find a way to overwrite the metadata here in case it is different from the current metadata, possibly via delete + upload
             }
             $metadata = $filelink->getMetaData();

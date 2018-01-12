@@ -95,7 +95,7 @@ class LocalFileStorage implements FileStorage
             $this->ensureCorrectLocalFile();
         }
         if (empty($file->getPath())) {
-            $errorMessage = "File's path not set";
+            $errorMessage = "File's path not set - (id '{$file->getId()}')";
             \Operations::status("Exception: " . $errorMessage);
             throw new Exception($errorMessage);
         }
@@ -258,6 +258,9 @@ class LocalFileStorage implements FileStorage
         // Save the file and file instance only first now when we know it is in place
         $localFileInstance->save();
         $file->save();
+
+        // For method chaining
+        return $this;
 
     }
 
