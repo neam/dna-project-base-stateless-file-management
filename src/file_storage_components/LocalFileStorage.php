@@ -197,7 +197,7 @@ class LocalFileStorage implements FileStorage
         $this->getLocalFilesystem()->write($path, $fileContents);
         $file->setMimetype(null);
         $file->setSize(null);
-        $this->determineFileMetadata($path);
+        $this->setFileMetadataBasedOnFileInLocalPath($path);
         if (!$this->checkIfCorrectLocalFileIsInPath($path)) {
             $errorMessage = "Put file contents failed";
             \Operations::status("Exception: " . $errorMessage);
