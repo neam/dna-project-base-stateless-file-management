@@ -109,32 +109,33 @@ trait FileTrait
 
     /**
      * Return the first available file storage for the current file where it is expected to find
-     * a binary copy of the file
+     * a binary copy of the file. Prefer remote file storages since it is assumed to be used to deliver file contents to end-users
+     * with access to cloud services and that most running instances of the application do not have a cached local copy of
+     * the binary available.
+     *
      * @return FileStorage
+     * @throws NoAvailableFileStorageException
      * @throws \Propel\Runtime\Exception\PropelException
      */
     public function firstAvailableFileStorage(): FileStorage
     {
-        /** @var \propel\models\File $this */
-        if (($fileInstance = $this->getFileInstanceRelatedByPublicFilesS3FileInstanceId()
-            ) && !empty($fileInstance->getUri())) {
-            return PublicFilesS3FileStorage::create($this, $fileInstance);
+        try {
+            return $this->firstAvailableRemoteFileStorage();
+        } catch (NoAvailableFileStorageException $e) {
+            if (($fileInstance = $this->getFileInstanceRelatedByLocalFileInstanceId()
+                ) && !empty($fileInstance->getUri())) {
+                return LocalFileStorage::create($this, $fileInstance);
+            }
         }
-        if (($fileInstance = $this->getFileInstanceRelatedByFilestackFileInstanceId()
-            ) && !empty($fileInstance->getUri())) {
-            return FilestackFileStorage::create($this, $fileInstance);
-        }
-        if (($fileInstance = $this->getFileInstanceRelatedByLocalFileInstanceId()
-            ) && !empty($fileInstance->getUri())) {
-            return LocalFileStorage::create($this, $fileInstance);
-        }
-        return null;
+        throw new NoAvailableFileStorageException();
     }
 
     /**
      * Return first best remote file storage where it is expected to find
      * a binary copy of the file when there is no local file available
-     * @return FilestackFileStorage|PublicFilesS3FileStorage|null
+     *
+     * @return FilestackFileStorage|PublicFilesS3FileStorage
+     * @throws NoAvailableFileStorageException
      * @throws \Propel\Runtime\Exception\PropelException
      */
     public function firstAvailableRemoteFileStorage()
@@ -148,13 +149,15 @@ trait FileTrait
             ) && !empty($fileInstance->getUri())) {
             return PublicFilesS3FileStorage::create($this, $fileInstance);
         }
-        return null;
+        throw new NoAvailableFileStorageException();
     }
 
     /**
      * Return the first best remote public file storage where it is expected to find
      * a public binary copy of the file
-     * @return PublicFilesS3FileStorage|null
+     *
+     * @return PublicFilesS3FileStorage
+     * @throws NoAvailableFileStorageException
      * @throws \Propel\Runtime\Exception\PropelException
      */
     public function firstAvailableRemotePublicFileStorage()
@@ -164,7 +167,7 @@ trait FileTrait
             ) && !empty($fileInstance->getUri())) {
             return PublicFilesS3FileStorage::create($this, $fileInstance);
         }
-        return null;
+        throw new NoAvailableFileStorageException();
     }
 
     /**
@@ -177,5 +180,9 @@ trait FileTrait
         /** @var \propel\models\File $this */
         return $this->getFileInstanceRelatedByFilestackPendingFileInstanceId() ? $this->getFileInstanceRelatedByFilestackPendingFileInstanceId() : null;
     }
+
+}
+
+class NoAvailableFileStorageException extends Exception {
 
 }
