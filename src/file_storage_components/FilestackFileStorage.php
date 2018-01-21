@@ -393,6 +393,10 @@ class FilestackFileStorage implements FileStorage
         } catch (FilestackException $e) {
             if ($e->getMessage() === "File not found") {
                 $exists = false;
+            } elseif (strpos($e->getMessage(), "This action has been secured") !== false) {
+                \Operations::status('We got a signature error while trying to check if the correct file is in place. Treating as 404 not found since it may mean that the handle/url belongs to another filestack application than they currently configured one. Message: ' . $e->getMessage());
+                // Due to the security setup, a 404 will be returned as invalid signature for secured filestack applications/storages
+                $exists = false;
             } else {
                 \Operations::status('We got a FilestackException while trying to check if the correct file is in place. Message: ' . $e->getMessage());
                 throw $e;
