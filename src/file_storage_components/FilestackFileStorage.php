@@ -296,6 +296,9 @@ class FilestackFileStorage implements FileStorage
             // Set locally guessed mimetype - taking advantage of the fact that we have the binary available locally makes this a fast operation
             $mimetype = $localFile->guessMimetypeByAbsoluteLocalPath($absoluteLocalPath);
 
+            // Currently forcing uploading new filestack instances instead of overwriting, since there are unresolved TODOs for the overwrite-logic
+            $filestackUrl = null;
+
             // Upload/overwrite the file
             $filelink = null;
             if (empty($filestackUrl)) {
@@ -307,6 +310,7 @@ class FilestackFileStorage implements FileStorage
             } else {
                 $handle = static::extractHandleFromFilestackUrl($filestackUrl);
                 /** @var Filelink $filelink */
+                // TODO: Handle the situation where we can't overwrite the current filestack handle since it may belong to another filestack account than the currently configured one
                 $filelink = $filestackClient->overwrite($absoluteLocalPath, $handle);
                 \Operations::status("Overwrite file ('{$file->getId()}') of mimetype '$mimetype' over filestack handle {$filelink->handle} of metadata '{TODO insert actual mimetype here}'");
                 // TODO: Find a way to overwrite the metadata here in case it is different from the current metadata, possibly via delete + upload
