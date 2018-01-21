@@ -217,6 +217,8 @@ class FilestackFileStorage implements FileStorage
 
         $file = $this->file;
 
+        \Operations::status("File id: {$file->getId()}, item label: {$file->getItemLabel()}");
+
         // Get the ensured remote public file instance with a binary copy of the file (binary copy is guaranteed to be found at this file instance's uri but not necessarily in the correct path)
         $filestackFileInstance = $this->getEnsuredFilestackFileInstance();
 
@@ -392,6 +394,7 @@ class FilestackFileStorage implements FileStorage
             if ($e->getMessage() === "File not found") {
                 $exists = false;
             } else {
+                \Operations::status('We got a FilestackException while trying to check if the correct file is in place. Message: ' . $e->getMessage());
                 throw $e;
             }
         }
