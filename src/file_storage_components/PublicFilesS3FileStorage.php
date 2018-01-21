@@ -101,9 +101,10 @@ class PublicFilesS3FileStorage implements FileStorage
     public function getPublicFilesS3BaseUrl()
     {
         $path = trim(PUBLIC_FILES_S3_PATH, '/');
+        $dataProfile = preg_replace('/^test\-/', '', DATA);
         return str_replace("s3://", "//", trim(PUBLIC_FILES_S3_BUCKET, '/')) . '/'
             . ($path ? $path . '/' : '')
-            . DATA . '/';
+            . $dataProfile . '/';
     }
 
     /**
