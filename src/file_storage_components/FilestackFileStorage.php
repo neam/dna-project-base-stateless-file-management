@@ -38,6 +38,11 @@ class FilestackFileStorage implements FileStorage
         return static::filestackCdnUrl(static::signFilestackUrl($this->fileInstance->getUri()));
     }
 
+    /**
+     * @return mixed
+     * @throws Exception
+     * @throws \neam\stateless_file_management\DownloadRemoteFile404Exception
+     */
     public function fileContents()
     {
         $targetFileHandle = tmpfile();

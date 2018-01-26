@@ -39,6 +39,7 @@ trait FileTrait
      * @param $url
      * @param $targetFileHandle
      * @return mixed
+     * @throws DownloadRemoteFile404Exception
      * @throws Exception
      */
     static public function downloadRemoteFileToStream($url, $targetFileHandle)
@@ -50,17 +51,37 @@ trait FileTrait
         if (substr($url, 0, 2) === "//") {
             $url = "http:" . $url;
         }
+        if (!is_resource($targetFileHandle)) {
+            throw new Exception("Invalid targetFileHandle argument to downloadRemoteFileToStream() - not a resource");
+        }
+        static::downloadRemoteFileUsingFopen($url, $targetFileHandle);
+        Operations::status("Downloaded file from $url");
+        return $targetFileHandle;
+    }
+
+    /**
+     * @param $url
+     * @param $targetFileHandle
+     * @return mixed
+     * @throws DownloadRemoteFile404Exception
+     * @throws Exception
+     */
+    static protected function downloadRemoteFileUsingFopen($url, $targetFileHandle)
+    {
         $BUFSIZ = 4095;
-        $rfile = fopen($url, 'r');
+        $rfile = @fopen($url, 'r');
         if (!$rfile) {
-            throw new Exception("Failed to open file handle against $url");
+            $error = error_get_last();
+            if (strpos($error['message'], "HTTP/1.1 404 Not Found") !== false) {
+                throw new DownloadRemoteFile404Exception($error['message']);
+            }
+            throw new Exception("Failed to open file handle against $url: {$error['message']}");
         }
         $lfile = $targetFileHandle;
         while (!feof($rfile)) {
             fwrite($lfile, fread($rfile, $BUFSIZ), $BUFSIZ);
         }
         fclose($rfile);
-        Operations::status("Downloaded file from $url");
         return $lfile;
     }
 
@@ -184,5 +205,10 @@ trait FileTrait
 }
 
 class NoAvailableFileStorageException extends Exception {
+
+}
+
+class DownloadRemoteFile404Exception extends Exception
+{
 
 }

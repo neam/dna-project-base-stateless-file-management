@@ -6,6 +6,8 @@ use League\Flysystem\FileNotFoundException;
 use League\Flysystem\Filesystem;
 use League\Flysystem\Adapter\Local;
 use Exception;
+use neam\stateless_file_management\DownloadRemoteFile404Exception;
+use neam\stateless_file_management\NoAvailableFileStorageException;
 use propel\models\File;
 use propel\models\FileInstance;
 use DateTime;
@@ -204,9 +206,9 @@ class LocalFileStorage implements FileStorage
             throw new Exception($errorMessage);
         }
         // Store local file instance
-        $localFileInstance = $this->createLocalFileInstanceIfNecessary();
-        $localFileInstance->setUri($path);
-        $localFileInstance->save();
+        $this->fileInstance = $this->createLocalFileInstanceIfNecessary();
+        $this->fileInstance->setUri($path);
+        $this->fileInstance->save();
     }
 
     /**
@@ -267,17 +269,17 @@ class LocalFileStorage implements FileStorage
     protected function createLocalFileInstanceIfNecessary()
     {
         $file = $this->file;
-        $localFileInstance = $file->localFileInstance();
+        $this->fileInstance = $file->localFileInstance();
 
         // Create a local file instance since none exists - but do not save it until we have put the binary in place...
-        if (empty($localFileInstance)) {
+        if (empty($this->fileInstance)) {
             $correctPath = $file->getCorrectPath();
-            $localFileInstance = new \propel\models\FileInstance();
-            $localFileInstance->setStorageComponentRef('local');
-            $file->setFileInstanceRelatedByLocalFileInstanceId($localFileInstance);
+            $this->fileInstance = new \propel\models\FileInstance();
+            $this->fileInstance->setStorageComponentRef('local');
+            $file->setFileInstanceRelatedByLocalFileInstanceId($this->fileInstance);
         }
 
-        return $localFileInstance;
+        return $this->fileInstance;
 
     }
 
@@ -299,22 +301,12 @@ class LocalFileStorage implements FileStorage
         if (empty($path)) {
             $path = $file->getCorrectPath();
         }
+
         // Only download if we can't determine if the correct file is already in place, or if we can determine it and we see that the wrong content is downloaded
         if ($file->getSize() === null || !$this->checkIfCorrectLocalFileIsInPath($path)) {
 
-            $fileStorage = $file->firstAvailableRemoteFileStorage();
-
-            // Dummy check
-            if ($fileStorage instanceof LocalFileStorage) {
-                $errorMessage = "The first available file storage can't be local file storage when we are ensuring local files";
-                \Operations::status("Exception: " . $errorMessage);
-                throw new Exception($errorMessage);
-            }
-
-            \Operations::status("First available file storage: " . get_class($fileStorage));
-
-            // Interface method for getting the remote binary into a local file stream
-            $fileContents = $fileStorage->fileContents();
+            // Ensure file contents from a trusted source
+            $fileContents = $this->ensureLocalFileContents();
 
             // Remove any existing incorrect file in the location
             try {
@@ -342,6 +334,37 @@ class LocalFileStorage implements FileStorage
         $this->fileInstance = $localFileInstance;
 
         return $localFileInstance;
+
+    }
+
+    protected function ensureLocalFileContents()
+    {
+
+        $file = $this->file;
+
+        // Ensure file contents from a trusted source
+        try {
+
+            /** @var FileStorage $fileStorage */
+            $fileStorage = $file->firstAvailableRemoteFileStorage();
+
+            // Dummy check
+            if ($fileStorage instanceof LocalFileStorage) {
+                $errorMessage = "The first available file storage can't be local file storage when we are ensuring local files";
+                \Operations::status("Exception: " . $errorMessage);
+                throw new Exception($errorMessage);
+            }
+
+            \Operations::status("First available file storage: " . get_class($fileStorage));
+
+            // Interface method for getting the remote binary into a local file stream
+            return $fileStorage->fileContents();
+
+        } catch (NoAvailableFileStorageException $e) {
+
+            throw $e;
+
+        }
 
     }
 
