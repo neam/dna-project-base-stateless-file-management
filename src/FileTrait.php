@@ -8,6 +8,9 @@ use neam\stateless_file_management\file_storage_components\FileStorage;
 use neam\stateless_file_management\file_storage_components\FilestackFileStorage;
 use neam\stateless_file_management\file_storage_components\LocalFileStorage;
 use neam\stateless_file_management\file_storage_components\PublicFilesS3FileStorage;
+use function GuzzleHttp\Psr7\stream_for;
+use GuzzleHttp\RequestOptions;
+use GuzzleHttp\Client;
 
 /**
  * Helper trait that encapsulates DNA project base file-handling logic
@@ -53,6 +56,7 @@ trait FileTrait
             throw new Exception("Invalid targetFileHandle argument to downloadRemoteFileToStream() - not a resource");
         }
         static::downloadRemoteFileUsingFopen($url, $targetFileHandle);
+        //static::downloadRemoteFileUsingGuzzle($url, $targetFileHandle);
         Operations::status("Downloaded file from $url");
         return $targetFileHandle;
     }
@@ -81,6 +85,28 @@ trait FileTrait
         }
         fclose($rfile);
         return $lfile;
+    }
+
+    static public function downloadRemoteFileUsingGuzzle($url, $targetFileHandle)
+    {
+        $stream = stream_for($targetFileHandle);
+        $client = new Client();
+        $options = [
+            RequestOptions::SINK => $stream, // the body of a response
+            RequestOptions::CONNECT_TIMEOUT => 10.0,    // request
+            RequestOptions::TIMEOUT => 10 * 60.0,    // response
+        ];
+        $response = $client->request('GET', $url, $options);
+        $stream->close();
+        //codecept_debug($targetFileHandle);
+        //fclose($targetFileHandle);
+        if ($response->getStatusCode() === 200) {
+            return $targetFileHandle;
+        } else {
+            // TODO: Catch and throw DownloadRemoteFile404Exception
+            throw new Exception("Not a HTTP 200 response when attempting to download file from url '$url' : {$response->getStatusCode()}");
+        }
+
     }
 
     public function absoluteUrl()
