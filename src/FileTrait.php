@@ -34,8 +34,6 @@ trait FileTrait
 {
 
     /**
-     * @propel
-     * @yii
      * @param $url
      * @param $targetFileHandle
      * @return mixed
@@ -204,7 +202,8 @@ trait FileTrait
 
 }
 
-class NoAvailableFileStorageException extends Exception {
+class NoAvailableFileStorageException extends Exception
+{
 
 }
 
